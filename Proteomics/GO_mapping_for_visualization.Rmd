@@ -1,0 +1,667 @@
+---
+title: "GO_hierarchy"
+author: "F.M. Kerckhof"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: yes
+    fig_caption: yes
+    number_sections: yes
+    keep_md: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(topGO)
+library(tidyverse)
+```
+
+## Data preparation
+
+```{r dataprep}
+cnec_GO_SUM1 <- readxl::read_xlsx("../Source_data/cnecator_GO_sum_1.xlsx",
+                                  sheet=1)
+cnec_GO_SUM1.nona <- cnec_GO_SUM1 |> filter(!is.na(GO_cellular_component))
+
+RUI <- cnec_GO_SUM1$`Unique Intensity`/max(cnec_GO_SUM1$`Unique Intensity`)
+CCgos <- cnec_GO_SUM1$GO_cellular_component[!is.na()]
+# sum(is.na(cnec_GO_SUM1$GO_cellular_component))/nrow(cnec_GO_SUM1)
+
+names(RUI) <- cnec_GO_SUM1$`Protein ID`
+
+genelist_trial <- cnec_GO_SUM1$`Razor Intensity`/max(cnec_GO_SUM1$`Razor Intensity`)
+names(genelist_trial) <- cnec_GO_SUM1$`Protein ID`
+
+# we need a custom GO mapping - see section 4.3 of topGO vignette
+genemap.df <- data.frame(protein_ID = cnec_GO_SUM1$`Protein ID`,
+                         GO_items = gsub(";",",",cnec_GO_SUM1$GO_ids))
+# we filter the NA's from the GO id's
+genemap.df.nona <- na.exclude(genemap.df)
+
+# we write it to a genemap
+readr::write_tsv(genemap.df.nona, 
+                 file = "gene2go_cnec_sum_1.map",
+                 col_names = FALSE)
+
+geneID2GO <- readMappings(file="gene2go_cnec_sum_1.map")
+
+allgensel <- function(genescores){
+  return(!is.na(genescores))
+}
+
+CNECGOdata <- new("topGOdata",
+                  description = "cellular comp", ontology = "CC",
+                  allGenes = genelist_trial, annot = annFUN.gene2GO,
+                  gene2GO = geneID2GO,nodeSize=1,geneSel = allgensel)
+                  
+resultFisher <- runTest(CNECGOdata, algorithm = "classic", statistic = "fisher")
+resultKS <- runTest(CNECGOdata, algorithm = "classic", statistic = "ks")
+resultKS.elim <- runTest(CNECGOdata, algorithm = "elim", statistic = "ks")
+
+graph(CNECGOdata)
+```
+
+## API-based resolution of ancestry
+
+
+### EMBL ancestry REST API
+
+#### First strategy: only "part of" relationships
+
+```{r embl_quickgo_ancestry}
+library(httr)
+library(jsonlite)
+library(xml2)
+
+base <- "https://www.ebi.ac.uk/QuickGO/services"
+endpoint <- "/ontology/go/terms/GO:0005737/ancestors?relations=is_a%2Cpart_of%2Coccurs_in"
+
+endpoint <- "/ontology/go/terms/GO:0005737/ancestors?relations=part_of"
+apiurl <- paste0(base,endpoint)
+temp_res <- httr::GET(url = apiurl, accept_json())
+stop_for_status(temp_res)
+
+temp_res_json <- toJSON(content(temp_res))
+temp_res_df <- fromJSON(temp_res_json)
+temp_res_df$results$ancestors
+
+# generate CC structure
+
+cnec_GO_SUM1.nona$GO_CC_1 <-
+  gsub(".+?\\[(.+?)\\];?.*",
+       "\\1",
+       cnec_GO_SUM1.nona$GO_cellular_component)
+
+cnec_GO_SUM1.nona$GO_CC_2 <-
+  gsub(".+?\\[(.+?)\\];?.+?\\[(.+?)\\];?.*",
+       "\\2",
+       cnec_GO_SUM1.nona$GO_cellular_component)
+
+allmatches <- gregexpr(".+?\\[(.+?)\\];?",cnec_GO_SUM1.nona$GO_cellular_component)
+
+range(sapply(
+  regmatches(
+    cnec_GO_SUM1.nona$GO_cellular_component,
+    gregexpr(".+?\\[(.+?)\\];?", cnec_GO_SUM1.nona$GO_cellular_component)
+  ),
+  length
+))
+# apparently up to 4 GO-ids are listed in this dataset for a single protein
+# however, we cannot guarantee that this number will be consistent among the
+# different datasets. To that end, we try to leverage regmatches
+
+CCids.df <- data.table::rbindlist(lapply(regmatches(
+  cnec_GO_SUM1.nona$GO_cellular_component,
+  gregexpr(".+?\\[(.+?)\\];?", cnec_GO_SUM1.nona$GO_cellular_component)
+), function(x) {
+  subsd <- gsub(".+?\\[(.+?)\\];?.*",
+                "\\1", x)
+  subsd.mat <- matrix(subsd, ncol = length(subsd))
+  return(as.data.frame(subsd.mat))
+}),fill=TRUE)
+
+
+cnec_GO_SUM1.nona$GO_CC_2[nchar(cnec_GO_SUM1.nona$GO_CC_2)>10]<-NA
+
+View(cnec_GO_SUM1.nona |>select(GO_cellular_component,GO_CC_1,GO_CC_2))
+
+
+# 1) get GO's to match against ----
+### for cellular anatomical entity all children: ---------
+
+base <- "https://www.ebi.ac.uk/QuickGO/services"
+
+requestURLCAE <- "https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/GO%3A0110165/children"
+rCAE <- GET(requestURLCAE, accept_json())
+
+stop_for_status(rCAE)
+
+rCAE.cont <- content(rCAE)
+
+childids <- sapply(rCAE.cont$results[[1]]$children,function(x)return(x$id))
+childnames <- sapply(rCAE.cont$results[[1]]$children,function(x)return(x$name))
+
+base <- "https://www.ebi.ac.uk/QuickGO/services"
+
+requestURLPCC <- "https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/GO%3A0032991/children"
+rPCC <- GET(requestURLPCC, accept_json())
+
+stop_for_status(rPCC)
+
+rPCC.cont <- content(rPCC)
+
+childids_pcc <- sapply(rPCC.cont$results[[1]]$children,function(x)return(x$id))
+childnames_pcc <- sapply(rPCC.cont$results[[1]]$children,function(x)return(x$name))
+
+# next to all children of the "cellular anatomic entity" (GO:0110165)
+# in this document we abbreviated this to CAE
+# we wanted to group ancestry at the level of either ribosomal proteins
+# and protein-containing complexes (PCC), which are not a child of the CAE
+# therefore we listed all chidren in the PCC as well, but those will be aggregated
+# in the output
+
+CAE.df <- data.frame(id=c(childids,
+                          "GO:0005840",
+                          childids_pcc),
+                     name=c(childnames,
+                            "ribosome",
+                            childnames_pcc),
+                     parent=c(rep("cellular anatomical entity", length(childnames)),
+                              "ribosome",
+                              rep("protein-containing complex",length(childnames_pcc))))
+
+dim(CAE.df)
+# 2) get all CC GO id's for each protein aggregated ---
+
+# below, we have added a Sys.sleep call to avoid overflooding the 
+# API responses -> depending on the amount of non-NA GO ID's, this can take
+# a few minuts
+partof_ancestors <- function(goid) {
+  if(!is.na(goid)){
+    base <- "https://www.ebi.ac.uk/QuickGO/services"
+  endpoint <-
+    paste0("/ontology/go/terms/",
+           goid,
+           "/ancestors?relations=part_of")
+  apiurl <- paste0(base, endpoint)
+  temp_res <- httr::GET(url = apiurl, accept_json())
+  stop_for_status(temp_res)
+  
+  temp_res_json <- toJSON(content(temp_res))
+  temp_res_df <- fromJSON(temp_res_json)
+  reslist <- list(apires=temp_res,
+                  ancestors=unlist(temp_res_df$results$ancestors))
+  return(reslist)
+  Sys.sleep(1.5)
+  }else{
+    return(NA)
+  }
+  
+}
+# I would like to make the below more generic - currently it is made for 4 levels
+# of CC GO ID depth - needs to be adjusted accordingly
+V1apires <- lapply(CCids.df$V1, partof_ancestors)
+V1apires.acrs <-
+  sapply(V1apires, function(x)
+    return(x$ancestors))
+V2apires <- lapply(CCids.df$V2,partof_ancestors)
+V2apires.acrs <- sapply(V2apires,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+V3apires <- lapply(CCids.df$V3,partof_ancestors)
+V3apires.acrs <- sapply(V3apires,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+V4apires <- lapply(CCids.df$V4,partof_ancestors)
+V4apires.acrs <- sapply(V4apires,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+# V1V2 <- unlist(lapply(V1apires.acrs, function(x){
+#   lapply(V2apires.acrs, function(y){
+#     c(x,y)
+#   })
+# }),recursive=FALSE)
+
+allres <- mapply(c,V1apires.acrs,V2apires.acrs,V3apires.acrs,V4apires.acrs,SIMPLIFY=F)
+allres.unique <- lapply(allres,function(x){
+  noblanks <- x[nchar(x)>=1]
+  noblanks.unique <- unique(noblanks)
+  return(noblanks.unique)
+})
+
+# 3) parse original CC goids as character vector as well and join + uniqueify ----
+
+
+origgoidscc <- lapply(regmatches(
+  cnec_GO_SUM1.nona$GO_cellular_component,
+  gregexpr(".+?\\[(.+?)\\];?", cnec_GO_SUM1.nona$GO_cellular_component)
+), function(x) {
+  subsd <- gsub(".+?\\[(.+?)\\];?.*",
+                "\\1", x)
+  subsd.mat <- matrix(subsd, ncol = length(subsd))
+  return(as.data.frame(subsd.mat))
+})
+
+
+origgoidscc.char <- lapply(origgoidscc,as.character)
+
+allres_w_orig <- mapply(c,allres.unique,origgoidscc.char,SIMPLIFY = FALSE)
+
+allres_w_orig.unique <- lapply(allres_w_orig,function(x){
+  noblanks <- x[nchar(x)>=1]
+  noblanks.unique <- unique(noblanks)
+  return(noblanks.unique)
+})
+
+range(sapply(allres_w_orig.unique,length)) 
+# some proteins have up to 14! unique GO id's, including their ancestors
+# this is giong to be fun!
+hist(sapply(allres_w_orig.unique,length))
+box()
+
+# 4) then use %in% syntax to match with CAE.df ------------
+# let's first naïvely map?
+# number of matches
+
+number_of_matches <- sapply(allres_w_orig.unique,function(x)sum(x %in% CAE.df$id))
+range(number_of_matches)
+hist(number_of_matches)
+box()
+
+zeromatches <- allres_w_orig.unique[number_of_matches==0]
+onematches <- allres_w_orig.unique[number_of_matches==1]
+fourmatches <- allres_w_orig.unique[number_of_matches==4]
+fivematches <- allres_w_orig.unique[number_of_matches==5]
+threematches <- allres_w_orig.unique[number_of_matches==3]
+
+# CAE.df |> dplyr::filter(id %in% allres_w_orig.unique[[1]][allres_w_orig.unique[[1]] %in% CAE.df$id])
+
+match_strategy_1 <- function(x, ref=CAE.df, verbose = FALSE){
+  # this function takes as input a character vector with GO-ids, x and matches 
+  # it against a two-column reference database with id's, ref that needs to have
+  # columns name and and id for the function to work
+  # it returns a two-column data frame with the pasted matched id's and their
+  # corresponding names
+  if(verbose){
+    message(date()," --- Processing entries: ",paste0(x,collapse=";"))
+  }
+  
+  matchres <- ref |> dplyr::filter(id %in% x[x %in% ref$id])
+  if(nrow(matchres)==0){
+    matchres_ids <- paste0(x,collapse=";")
+    
+    if(length(x)==1){
+      zeromatchid <- x
+    }else{
+      zeromatchid <- x[[1]]
+    }
+    requestURL <- paste0("https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/GO%3A",
+                         gsub("GO:","",zeromatchid))
+    temp_res <- httr::GET(url = requestURL, accept_json())
+    stop_for_status(temp_res)
+  
+    temp_res_json <- toJSON(content(temp_res))
+    temp_res_df <- fromJSON(temp_res_json)
+    
+    matchres_names <- as.character(temp_res_df$results[1,]$name)
+    matchres_type <- "No part of ribosome, CAE or PCC"
+    matchres_inferred <- if(grepl("membrane",matchres_names)){"membrane"}else{
+      if(grepl("pilus",matchres_names)){"pilus"}else{
+        if(grepl("complex",matchres_names)){"protein-containing complex"}else{
+          "Inference failed"
+        }
+      }
+    }
+                           
+  }else{
+    matchres_ids <- paste0(matchres$id,collapse=";")
+    matchres_names <- paste0(matchres$name,collapse=";")
+    matchres_type <- paste0(unique(matchres$parent),collapse=";")
+    
+    matchres_csv <- paste0(matchres$id,collapse=",")
+    
+    if(nrow(matchres)==1){
+      if(any(matchres$parent=="protein-containing complex")){
+        matchres_inferred <- "protein-containing complex"
+      }else{
+        matchres_inferred <- matchres_names
+      }
+      
+    }else{
+      # map and cleanup anything with the part of relation
+      requestURL <- paste0("https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/",
+                          URLencode(matchres_csv,reserved = TRUE))
+      ontorel <- GET(requestURL, accept_json())
+      stop_for_status(ontorel)
+      jsonontorel <- toJSON(content(ontorel))
+      ontoreldf <- fromJSON(jsonontorel)
+      if(length(matchres$id)>1){
+        if(!is.null(ontoreldf$results$xRelations)){
+          no_rels <- try(ontoreldf$results |> dplyr::filter(!sapply(xRelations,is.null)))
+          if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            matchres_inferred <- paste0(no_rels$name,collapse=";")
+          }
+          
+        } else {
+          if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            matchres_inferred <- paste0(ontoreldf$results$name,collapse=";")
+          }
+         
+        }
+        
+      }else{
+        if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            matchres_inferred <- paste0(ontoreldf$results$name,collapse=";")
+          }
+      }
+      
+    }
+  }
+  
+  resdf <- data.frame(ref_ids = matchres_ids,
+                      ref_names = matchres_names,
+                      ref_type = matchres_type,
+                      ref_inferred = matchres_inferred)
+  
+  return(resdf)
+}
+
+# Below, I have set verbose to TRUE, but this is for debugging purposes mainly
+
+ms1 <- lapply(allres_w_orig.unique, function(x){
+  match_strategy_1(x, ref = CAE.df, verbose = TRUE)})
+
+ms1.dt <- data.table::rbindlist(ms1)
+
+cnec_GO_cc_sum_nona_strategy1 <- cbind(cnec_GO_SUM1.nona, data.frame(cc_ids_with_ancestors_unique = sapply(allres_w_orig.unique,function(x)paste0(x,collapse=";"))), ms1.dt)
+
+openxlsx::write.xlsx(cnec_GO_cc_sum_nona_strategy1,file="../Results/Strategy_1_results.xlsx",overwrite = TRUE)
+
+```
+
+#### Second strategy: "is a" and "part of" relationships
+
+```{r secstrat}
+# 2) get all CC GO id's for each protein aggregated ---
+
+# below, we have added a Sys.sleep call to avoid overflooding the 
+# API responses -> depending on the amount of non-NA GO ID's, this can take
+# a few minuts
+partofisa_ancestors <- function(goid) {
+  if(!is.na(goid)){
+    base <- "https://www.ebi.ac.uk/QuickGO/services"
+  endpoint <-
+    paste0("/ontology/go/terms/",
+           goid,
+           "/ancestors?relations=is_a%2Cpart_of")
+  apiurl <- paste0(base, endpoint)
+  temp_res <- httr::GET(url = apiurl, accept_json())
+  stop_for_status(temp_res)
+  
+  temp_res_json <- toJSON(content(temp_res))
+  temp_res_df <- fromJSON(temp_res_json)
+  reslist <- list(apires=temp_res,
+                  ancestors=unlist(temp_res_df$results$ancestors))
+  return(reslist)
+  Sys.sleep(1.5)
+  }else{
+    return(NA)
+  }
+  
+}
+
+# I would like to make the below more generic - currently it is made for 4 levels
+# of CC GO ID depth - needs to be adjusted accordingly
+V1apiresisapartof <- lapply(CCids.df$V1, partofisa_ancestors)
+V1apiresisapartof.acrs <-
+  sapply(V1apiresisapartof, function(x)
+    return(x$ancestors))
+
+V2apiresisapartof <- lapply(CCids.df$V2, partofisa_ancestors)
+V2apiresisapartof.acrs <- 
+  sapply(V2apiresisapartof,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+V3apiresisapartof <- lapply(CCids.df$V3,partofisa_ancestors)
+V3apiresisapartof.acrs <- sapply(V3apiresisapartof,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+V4apiresisapartof <- lapply(CCids.df$V4,partofisa_ancestors)
+V4apiresisapartof.acrs <- sapply(V4apiresisapartof,function(x) {
+  if(!any(is.na(x))){
+    return(x$ancestors)
+  }else{
+    return("")
+  }
+  })
+
+
+allres.iapo <- mapply(c,V1apiresisapartof.acrs,
+                      V2apiresisapartof.acrs,
+                      V3apiresisapartof.acrs,
+                      V4apiresisapartof.acrs,SIMPLIFY=F)
+allres.iapo.unique <- lapply(allres.iapo,function(x){
+  noblanks <- x[nchar(x)>=1]
+  noblanks.unique <- unique(noblanks)
+  return(noblanks.unique)
+})
+
+allres_w_orig_iapo <- mapply(c,allres.iapo.unique, origgoidscc.char, 
+                             SIMPLIFY = FALSE)
+
+allres_w_orig_iapo.unique <- lapply(allres_w_orig_iapo,function(x){
+  noblanks <- x[nchar(x)>=1]
+  noblanks.unique <- unique(noblanks)
+  return(noblanks.unique)
+})
+
+range(sapply(allres_w_orig_iapo.unique,length)) 
+
+# some proteins have up to 19! unique GO id's, including their ancestors
+# this is giong to be fun!
+hist(sapply(allres_w_orig_iapo.unique,length),breaks=15)
+box()
+
+# 4) then use %in% syntax to match with CAE.df ------------
+# let's first naïvely map?
+# number of matches
+
+number_of_matches.iapo <- sapply(allres_w_orig_iapo.unique,function(x)sum(x %in% CAE.df$id))
+range(number_of_matches.iapo)
+hist(number_of_matches.iapo)
+box()
+
+
+zeromatches   <- allres_w_orig_iapo.unique[number_of_matches.iapo==0] # appears to only occur still for top-level
+onematches    <- allres_w_orig_iapo.unique[number_of_matches.iapo==1]
+twomatches    <- allres_w_orig_iapo.unique[number_of_matches.iapo==2]
+threematches  <- allres_w_orig_iapo.unique[number_of_matches.iapo==3]
+fourmatches   <- allres_w_orig_iapo.unique[number_of_matches.iapo==4]
+fivematches   <- allres_w_orig_iapo.unique[number_of_matches.iapo==5]
+sixmatches    <- allres_w_orig_iapo.unique[number_of_matches.iapo==6]
+
+match_strategy_2 <- function(x, ref=CAE.df, verbose = FALSE){
+  # this function takes as input a character vector with GO-ids, x and matches 
+  # it against a two-column reference database with id's, ref that needs to have
+  # columns name and and id for the function to work
+  # it returns a two-column data frame with the pasted matched id's and their
+  # corresponding names
+  if(verbose){
+    message(date()," --- Processing entries: ",paste0(x,collapse=";"))
+  }
+  
+  matchres <- ref |> dplyr::filter(id %in% x[x %in% ref$id])
+  # we have found that the 0 match id only corresponds to the CAE itself
+  if(nrow(matchres)==0){
+    matchres_ids <- paste0(x,collapse=";")
+    
+    if(length(x)==1){
+      zeromatchid <- x
+    }else{
+      zeromatchid <- x[[1]]
+    }
+    requestURL <- paste0("https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/GO%3A",
+                         gsub("GO:","",zeromatchid))
+    temp_res <- httr::GET(url = requestURL, accept_json())
+    stop_for_status(temp_res)
+  
+    temp_res_json <- toJSON(content(temp_res))
+    temp_res_df <- fromJSON(temp_res_json)
+    
+    matchres_names <- as.character(temp_res_df$results[1,]$name)
+    matchres_type <- "No part of ribosome, CAE or PCC"
+    matchres_inferred <- if(grepl("membrane",matchres_names)){"membrane"}else{
+      if(grepl("pilus",matchres_names)){"pilus"}else{
+        if(grepl("complex",matchres_names)){"protein-containing complex"}else{
+          if(grepl("anatomical",matchres_names)){"cellular anatomical entity"}else{
+            "Inference failed"
+          }
+          
+        }
+      }
+    }
+                           
+  }else{
+    matchres_ids <- paste0(matchres$id,collapse=";")
+    matchres_names <- paste0(matchres$name,collapse=";")
+    matchres_type <- paste0(unique(matchres$parent),collapse=";")
+    
+    matchres_csv <- paste0(matchres$id,collapse=",")
+    
+    if(nrow(matchres)==1){
+      if(any(matchres$parent=="protein-containing complex")){
+        matchres_inferred <- "protein-containing complex"
+      }else{
+        matchres_inferred <- matchres_names
+      }
+      
+    }else{
+      # map and cleanup anything with the part of relation
+      requestURL <- paste0("https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/",
+                          URLencode(matchres_csv,reserved = TRUE),
+                          "/xontologyrelations")
+      ontorel <- GET(requestURL, accept_json())
+      stop_for_status(ontorel)
+      jsonontorel <- toJSON(content(ontorel))
+      ontoreldf <- fromJSON(jsonontorel)
+      if(length(matchres$id)>1){
+        if(!is.null(ontoreldf$results$xRelations)){
+          no_rels <- try(ontoreldf$results |> dplyr::filter(sapply(xRelations,is.null)))
+          if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            if(any(matchres$parent=="ribosome")){
+              matchres_inferred <- "ribosome"
+            }else{
+              if(nrow(no_rels)>0){
+                matchres_inferred <- paste0(no_rels$name,collapse=";")
+              }else{
+                matchres_inferred <- paste0(matchres$name,collapse=";")
+              }
+              
+            }
+            
+          }
+          
+        } else {
+          if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            if(any(matchres$parent=="ribosome")){
+              matchres_inferred <- "ribosome"
+            }else{
+              matchres_inferred <- paste0(matchres$name,collapse=";")
+            }
+          }
+         
+        }
+        
+      }else{
+        if(all(matchres$parent=="protein-containing complex")){
+            matchres_inferred <- "protein-containing complex"
+          }else{
+            if(any(matchres$parent=="ribosome")){
+              matchres_inferred <- "ribosome"
+            }else{
+              matchres_inferred <- paste0(matchres$name,collapse=";")
+            }
+          }
+      }
+      
+    }
+  }
+  
+  resdf <- data.frame(ref_ids = matchres_ids,
+                      ref_names = matchres_names,
+                      ref_type = matchres_type,
+                      ref_inferred = matchres_inferred)
+  
+  return(resdf)
+}
+
+ms2 <- lapply(allres_w_orig_iapo.unique, function(x){
+  match_strategy_2(x, ref = CAE.df, verbose = TRUE)})
+
+ms2.dt <- data.table::rbindlist(ms2)
+
+ms2.dt$ref_inferred_simplified <- ms2.dt$ref_inferred
+ms2.dt$ref_inferred_simplified[grepl("membrane protein complex",
+                                     ms2.dt$ref_inferred_simplified)] <- "membrane protein complex"
+ms2.dt$ref_inferred_simplified[grepl("respirasome",
+                                     ms2.dt$ref_inferred_simplified)] <- "respirasome"
+ms2.dt$ref_inferred_simplified[grepl("catalytic complex",
+                                     ms2.dt$ref_inferred_simplified)] <- "membrane catalytic complex"
+ms2.dt$ref_inferred_simplified[grepl("membrane;",
+                                     ms2.dt$ref_inferred_simplified)] <- "membrane"
+ms2.dt$ref_inferred_simplified[grepl("nucleoid",
+                                     ms2.dt$ref_inferred_simplified)] <- "nucleoid"
+ms2.dt$ref_inferred_simplified[grepl("cytosol",
+                                     ms2.dt$ref_inferred_simplified)] <- "cytosol"
+ms2.dt$ref_inferred_simplified[grepl("extracellular region",
+                                     ms2.dt$ref_inferred_simplified)] <- "extracellular region"
+ms2.dt$ref_inferred_simplified[grepl("organelle;cytoplasm",
+                                     ms2.dt$ref_inferred_simplified)] <- "cytoplasm"
+ms2.dt$ref_inferred_simplified[grepl("envelope;periplasmic space",
+                                     ms2.dt$ref_inferred_simplified)] <- "periplasmic space"
+
+
+
+cnec_GO_cc_sum_nona_strategy2 <- cbind(cnec_GO_SUM1.nona, data.frame(cc_ids_with_ancestors_unique = sapply(allres_w_orig_iapo.unique,function(x)paste0(x,collapse=";"))), ms2.dt)
+
+openxlsx::write.xlsx(cnec_GO_cc_sum_nona_strategy2,file="../Results/Strategy_2_results.xlsx",overwrite = TRUE)
+
+```
+
