@@ -13,5 +13,6 @@ Script | Language | Purpose
 -------|----------|----------
 Proteomics/GO_mapping_for_visualization.Rmd | R (markdown) | simplification of GO results into data frame for simplified visualization using the QuickGO REST API
 Flow_cytometry/Gating_and_preprocessing_FCM | R (markdown) | data extraction and gating script from raw flow cytometry standard (FCS) files
+Proteomics/Retrieve-GO-terms.ipynb | Python (iPython notebook) | Retrieve and organize GO id's from protein info
 
 ## Dependencies and references
