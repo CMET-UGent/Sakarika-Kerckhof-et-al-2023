@@ -17,6 +17,12 @@ Proteomics/Retrieve-GO-terms.ipynb | Python (iPython notebook) | Retrieve and or
 
 ## Dependencies and references
 
+### Source data
+
+The mass spectrometry data and flow cytometry data have been published in dedicated repositories:
+- Proteomics data can be found at: 
+- Flow cytometry data can be found at the FlowRepository with identifier FR-FCM-Z6Y6 - until publication of the manuscript this identifier is under embargo, but anonymous reviewer access can be provided
+
 ### R packages
 
 - [tidyverse](https://www.tidyverse.org/):
