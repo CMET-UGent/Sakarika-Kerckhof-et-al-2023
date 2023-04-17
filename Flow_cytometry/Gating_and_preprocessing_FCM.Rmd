@@ -3,8 +3,6 @@ title: "Flowcytometry_preprocessing"
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
   rmarkdown::render(input_file,
- encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 author: "F.M. Kerckhof"
 date: "`r Sys.Date()`"
 output: 
@@ -28,46 +26,77 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ### load required packages -----------------------------------------------------
 library(Phenoflow)
+library(knitr)
+library(kableExtra)
+library(forecast)
+library(tsoutliers)
 library(flowWorkspace)
 library(ggcyto)
 library(scales)
 library(officer)
 library(tidyverse)
-### load data ------------------------------------------------------------------
-allfs.orig <- read.flowSet(path="Source_data/fcsfiles/",pattern="*.fcs",
-                           emptyValue = FALSE)
-# currently, because of github file storage limitations, first these 
-# files will need to be donwloaded from the flowRepository
-
-sampleNames(allfs.orig)[which(grepl("reacq",sampleNames(allfs.orig)))]<-
-  gsub("_reacquisition_","",
-       sampleNames(allfs.orig)[which(grepl("reacq",sampleNames(allfs.orig)))])
+library(openCyto)
+library(openxlsx)
+library(data.table)
 
 ### Custom functions -----------------------------------------------------------
-syprosytoplotr <- function(x) {
-  pSYPROSYTOgatetemp <- ggcyto(x, aes(x = "RL1-H", y = "BL2-H"))
-  pSYPROSYTOgatetemp <- pSYPROSYTOgatetemp +
-    geom_hex(bins = 256) +
-    theme_bw() +
-    labs_cyto("marker") +
-    ggcyto_par_set(limits = "data") +
-    geom_gate(polyGateSYPROSYTO,
-              colour = "orangered")
+
+iccplotr<-function(x){
+  pICCgatetemp <- ggcyto(x,aes(x="BL1-H",y="BL3-H"))
+  pICCgatetemp <- pICCgatetemp + geom_hex(bins=512) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
+            geom_gate(polyGateICC,colour="darkgreen") + geom_gate(polyGateDCC,colour="darkred")
+  print(pICCgatetemp)
+}
+
+tccplotr<-function(x){
+  pTCCgatetemp <- ggcyto(x,aes(x="BL1-H",y="BL3-H"))
+  pTCCgatetemp <- pTCCgatetemp + geom_hex(bins=512) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
+            geom_gate(polyGateTCC,colour="darkgreen") 
+  print(pTCCgatetemp)
+}
+
+syprosytoplotr<-function(x){
+  pSYPROSYTOgatetemp <- ggcyto(x,aes(x="RL1-H",y="BL2-H"))
+  pSYPROSYTOgatetemp <- pSYPROSYTOgatetemp + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+
+                        ggcyto_par_set(limits="data")+
+                        geom_gate(polyGateSYPROSYTO,colour="orangered") 
   print(pSYPROSYTOgatetemp)
 }
 
-syprosscplotr <- function(x) {
-  pSYPROSSCgatetemp <- ggcyto(x, aes(x = "SSC-H", y = "BL2-H"))
-  pSYPROSSCgatetemp <- pSYPROSSCgatetemp +
-    geom_hex(bins = 256) +
-    theme_bw() + labs_cyto("marker") +
-    ggcyto_par_set(limits = "data") +
-    geom_gate(polyGateSYPROSSC,
-              colour = "darkgreen")
+syprosscplotr<-function(x){
+  pSYPROSSCgatetemp <- ggcyto(x,aes(x="SSC-H",y="BL2-H"))
+  pSYPROSSCgatetemp <- pSYPROSSCgatetemp + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+
+            ggcyto_par_set(limits="data")+
+            geom_gate(polyGateSYPROSSC,colour="darkgreen") 
   print(pSYPROSSCgatetemp)
 }
 
+singletplotr<-function(x){
+  psingletgatetemp <- ggcyto(x,aes(x="BL1-H",y="BL1-A"))
+  psingletgatetemp <- psingletgatetemp + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+
+            ggcyto_par_set(limits="data")+
+            geom_gate(polyGatesinglets,colour="darkgreen") 
+  print(psingletgatetemp)
+}
+
+### load raw data --------------------------------------------------------------
+
+# PLEASE NOTE:
+# currently, because of github file storage limitations, first the raw data files 
+# files will need to be donwloaded from the flowRepository (ID FR-FCM-Z6Y6)
+# and placed into Source_data. The KP panels should be saved under fcsfiles_KP
+# and the other panels under fcsfiles_CNEC.
+
+#### KP raw data ---------------------------------------------------------------
+allfs.orig <- read.flowSet(path="Source_data/fcsfiles_KP/",pattern="*.fcs",
+                           emptyValue = FALSE)
+#### CNEC raw data -------------------------------------------------------------
+mainflowset <- read.flowSet(path="Source_data/fcsfiles_CNEC/",pattern="*.fcs",
+                                   emptyValue = FALSE)
+
 ### load metadata --------------------------------------------------------------
+
+#### KP metadata and annotation ------------------------------------------------
 metadata_all <- readxl::read_xlsx("alexandra_meta.xlsx",sheet="to_verify")
 cordillstert <- readxl::read_xlsx("Alexandra_ICC_dils_corr.xlsx",sheet=1)
 
@@ -80,6 +109,10 @@ KPexp1names <- metadata_all %>%
 
 metadata_all[metadata_all$filenames%in%KPexp1names,]$`Toanalyze?`<-"Yes"
 
+#### CNEC metadata and annotation ----------------------------------------------
+metadatadf <- readxl::read_xlsx("Metadata_Myrsini_main_run_MS.xlsx")
+metadatadf$cumtim <- as.numeric(gsub("t","",metadatadf$Timepoint))*2L
+
 ### data wrangling -------------------------------------------------------------
 mddf.toanalyze <- metadata_all %>% dplyr::filter(`Toanalyze?`!="No")
 mddf.toanalyze$experiment <- "exp1"
@@ -88,6 +121,10 @@ mddf.toanalyze$experiment[grep("EXP2",mddf.toanalyze$filenames)] <- "exp2"
 mddf.toanalyze$experiment[grep("exp3",mddf.toanalyze$filenames)] <- "exp3"
 mddf.toanalyze$experiment[grep("EXP3",mddf.toanalyze$filenames)] <- "exp3"
 # mddf.toanalyze$filenames %in% sampleNames(allfs.orig) # all good
+
+
+### pre-transform FCM data for KP ----------------------------------------------
+
 trans.func <- asinh
 inv.func <- sinh
 trans.obj <- trans_new("myAsinh", trans.func, inv.func)
@@ -101,31 +138,12 @@ allfs_transformed <- cytoset_to_flowSet(gs_pop_get_data(gsall))
 
 # Introduction
 
-For the experiment of Pereira & Sakarika (2021) we have a few dedicated research
-questions:
-
-1.	Estimate the intact/damaged cells progression throughout time for all conditions
-  - Is there significant growth in cell count throughout time? (e.g. did the bacteria actually grow in the MMMV medium) Which condition provided the highest cell count (compare also with the CDW)?
-  - Evaluate how growth phase, media composition (for M. extorquens) and type of culture change the ratio between intact/damaged cells -> what we need from FM: help with gates and counts with the correct gates. We should have 3 gates: bacterium (intact), yeast (intact), damaged (both). For the intact, we would like the growth curves graphically (and the values). For the damaged, we would like only the values.
-
-2. How does the cell size change throughout the growth? (can we get a number for this? i.e. % change?). Is this influenced by co-cultivation
-
-3. Is it possible to see a clear separation of bacterial and yeast strains in the co-culture experiments? If so, how does the ratio bacteria/yeast vary throughout (is there a dominant species, collaboration, etc.). 
-
-4. Evaluate how growth phase, media composition and type of culture change the ratio of nucleic acids to protein.
-  - Nucleic acid intensity graph over time (SYTO62 or maybe better SYBR Green I) - separated per "condition" (strain here?) and over treatment
-  - Mean intensity values as data (limited value according to FM)
-  - Frequency histogram of SYPRO intensities per treatment and per time
-  - Establish link between SYRPO intensity at the end and per condition and BCA measurements
-  
-5. Estimate PHA content throughout time for all conditions
-  - BODIPY intensity graph over time - separated per "condition" (strain here?) and over treatment
-  - Identify conditions with heighest relative PHA
-  - Mean intensity values as data (limited value according to FM)
   
 # Methods
 
-## FCM acquisition
+## FCM 
+
+### Acquisition
 
 Data was acquired on a Thermo Scientific Attune NXT 2019 (BRxx configuration: 488nm (blue/BL) laser and 635nm (red/RL) laser). For elementary data processing, gates were set based upon certain (single-stained ) controls. Acquisition was performed at a flowrate of 100µL/min and event rates were kept below 8000 events/second (although, due to high background some BODIPY samples reached 10.000 eps) by diluting in phosphate buffered saline (Sigma). Acquisition was stopped after 75µL of volume was recorded. An initial lead-time of 15 seconds was not recorded in order to stabilize the flow.
 
@@ -135,44 +153,54 @@ Using the Thermo SYTO red stain sampler kit, we assessed staining efficiency and
 
 The events and fluorescence over time stability was closely monitored for acquisition-level stability.
 
-## FCM data analysis and bio-informatics
+### Data processing
 
-To be elaborated on later
+In a simple approach, we used fluorescence gates to determine ICC, TCC and DCC
+through time. In order to assure proper acquisition only singlets (in A/H plots
+of main fluorescent parameter - in this case BL1) were counted. 
+
+All cultures were executed in quadruplicate - we applied three modes of outlier 
+detection and removal, to assure more consistent results:
+
+  1. Manual removal (MS Excel) - based on IQR cutoff - whole sample is removed when flagged as outlier
+  2. Time-series based outlier removal (R package `tsoutlier`) - whole sample is removed when flagged as outlier
+  3. flowAI based event-level QC (R package `flowAI`)- based on dynamic range and fluorescence stability - only aberrant events are removed (only executed on SYPRO/BODIPY data as they could affect MFI's - if fingerprinting is executed at a later stage this or flowCut will be done as well on SG data)
+  
 
 # Results
 
-## ICC/DCC over time
+## (Intact) cell counts
 
-### Data quality and acquisition-level cleanup
+### K. phaffii
+
+#### Data quality and acquisition-level cleanup
 
 Based upon visual inspection of the relevant gates, re-acquisition of certain
 samples was performed. Below we use flowAI (Monaco *et al.*, 2016) to cleanup
 acquisition-level problems in the data. First, however, we need to identify only
 the cellular population based upon gates.
 
-#### Singlet gating {.tabset .tabset-pills}
+##### Singlet gating {.tabset .tabset-pills}
 
 Because of the documented tendency of ME and KP to aggregate, we first made sure
 that only "singlet" events were considered. We can observe that the fraction of
 singlet to total events *roughly* decreases over time in MMMV. 
 
-##### In MMMV
 
-
-```{r singletgating, warning=FALSE,message=FALSE,fig.cap="Fraction of singlet events in MMMV over time (colored by strain or combination). KP= Komagataella pastoris, KPME= mix of KP and ME, ME= Methylobacterium Extorquens.",cache=TRUE,cache.lazy=FALSE}
+```{r singletgating, warning=FALSE,message=FALSE,fig.cap="Fraction of singlet events in MMMV over time (colored by strain or combination). KP= Komagataella pastoris",cache=TRUE,cache.lazy=FALSE}
 # Subset to only ICC -----------------------------------------------------------
 mddf.toanalyze.ICC.MMMV <- mddf.toanalyze %>% 
                               dplyr::filter(target=="ICC"&Medium=="MMMV")
-mddf.toanalyze.ICC.AMS <- mddf.toanalyze %>% 
-                              dplyr::filter(target=="ICC"&Medium=="AMS")
+# mddf.toanalyze.ICC.AMS <- mddf.toanalyze %>% 
+#                               dplyr::filter(target=="ICC"&Medium=="AMS")
 gsICCMMMV <- gsall[mddf.toanalyze.ICC.MMMV$filenames]
-gsICCAMS <- gsall[mddf.toanalyze.ICC.AMS$filenames]
+# gsICCAMS <- gsall[mddf.toanalyze.ICC.AMS$filenames]
 fsICCMMMV <- allfs_transformed[mddf.toanalyze.ICC.MMMV$filenames]
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P12V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P11V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P13V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P15V`))
-fsICCAMS <- allfs_transformed[mddf.toanalyze.ICC.AMS$filenames]
+#fsICCAMS <- allfs_transformed[mddf.toanalyze.ICC.AMS$filenames]
 # unique(fsApply(fsICCAMS,function(x)x@description$`$P12V`))
 # unique(fsApply(fsICCAMS,function(x)x@description$`$P11V`))
 # unique(fsApply(fsICCAMS,function(x)x@description$`$P13V`))
