@@ -1,7 +1,7 @@
 # Sakarika-Kerckhof-et-al-2023
 Accompanying code to Sakarika, Kerckhof et al. 2023 - "Growth rate and limiting 
  substrate define the nutritional composition and cell size of microbial biomass 
- for food applications " (in prep).
+ for food applications " (submitted).
  
 Unless otherwise stated, most code is provided in the R language and most 
 coherent scripts are grouped into [R markdown](https://rmarkdown.rstudio.com/) 
