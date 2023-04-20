@@ -182,7 +182,7 @@ the cellular population based upon gates.
 
 ##### Singlet gating {.tabset .tabset-pills}
 
-Because of the documented tendency of ME and KP to aggregate, we first made sure
+Because of the documented tendency of KP to aggregate, we first made sure
 that only "singlet" events were considered. We can observe that the fraction of
 singlet to total events *roughly* decreases over time in MMMV. 
 
@@ -191,61 +191,17 @@ singlet to total events *roughly* decreases over time in MMMV.
 # Subset to only ICC -----------------------------------------------------------
 mddf.toanalyze.ICC.MMMV <- mddf.toanalyze %>% 
                               dplyr::filter(target=="ICC"&Medium=="MMMV")
-# mddf.toanalyze.ICC.AMS <- mddf.toanalyze %>% 
-#                               dplyr::filter(target=="ICC"&Medium=="AMS")
+
 gsICCMMMV <- gsall[mddf.toanalyze.ICC.MMMV$filenames]
-# gsICCAMS <- gsall[mddf.toanalyze.ICC.AMS$filenames]
+
 fsICCMMMV <- allfs_transformed[mddf.toanalyze.ICC.MMMV$filenames]
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P12V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P11V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P13V`))
 # unique(fsApply(fsICCMMMV,function(x)x@description$`$P15V`))
-#fsICCAMS <- allfs_transformed[mddf.toanalyze.ICC.AMS$filenames]
-# unique(fsApply(fsICCAMS,function(x)x@description$`$P12V`))
-# unique(fsApply(fsICCAMS,function(x)x@description$`$P11V`))
-# unique(fsApply(fsICCAMS,function(x)x@description$`$P13V`))
-# unique(fsApply(fsICCAMS,function(x)x@description$`$P15V`))
+
 # Design gates -----------------------------------------------------------------
-## Bacterial gates -------------------------------------------------------------
-sqrcutICCbact<- matrix(c(7.50, 7.50,11.0, 12.5, 12.5,
-                         2.50, 7.50,7.90, 11, 5.00),
-     ncol = 2,
-     nrow = 5)
-colnames(sqrcutICCbact) <- c("BL1-H", "BL3-H")
-polyGateICCbact <- polygonGate(.gate = sqrcutICCbact, 
-                               filterId = "Intact Bacterial Cells fluo")
 
-sqrcutICCbactprim<- matrix(c(6.75, 6.75,11.5, 13.0, 13.0,
-                             2.50, 7.25,9.30, 11, 5.00),
-     ncol = 2,
-     nrow = 5)
-colnames(sqrcutICCbactprim) <- c("BL1-H", "BL3-H")
-polyGateICCbactprim <- polygonGate(.gate = sqrcutICCbactprim, 
-                               filterId = "Intact Bacterial Cells (primary)")
-
-sqrcutICCbactSC<- matrix(c(8.00, 13.0, 13.0, 8.00, 
-                           4.90, 5.00, 8.25, 7.10),
-     ncol = 2,
-     nrow = 4)
-colnames(sqrcutICCbactSC) <- c("BL1-H", "SSC-H")
-polyGateICCbactSC <- polygonGate(.gate = sqrcutICCbactSC, 
-                                 filterId = "Bacterial Cells scatter")
-
-sqrcutICCbactSCprim<- matrix(c(6.50, 13.0, 13.0, 6.50, 
-                               4.25, 4.25, 8.15, 7.10),
-     ncol = 2,
-     nrow = 4)
-colnames(sqrcutICCbactSCprim) <- c("BL1-H", "SSC-H")
-polyGateICCbactSCprim <- polygonGate(.gate = sqrcutICCbactSCprim, 
-                                 filterId = "Bacterial Cells BL1/SSC")
-
-sqrcutICCbactSConly<- matrix(c(7.60, 10.5, 11.10, 7.60, 
-                               6.35, 5.90, 8.500, 7.40),
-     ncol = 2,
-     nrow = 4)
-colnames(sqrcutICCbactSConly) <- c("FSC-H", "SSC-H")
-polyGateICCbactSConly <- polygonGate(.gate = sqrcutICCbactSConly, 
-                                 filterId = "Bacterial Cells scatter alone")
 ## Yeast gates -----------------------------------------------------------------
 sqrcutICCyeast<- matrix(c(11.0, 11.0, 14.5, 14.5,
                           6.50, 8.50, 12.0, 11.0),
@@ -302,21 +258,6 @@ colnames(sqrcutDCCprim) <- c("BL1-H", "BL3-H")
 polyGateDCCprim <- polygonGate(.gate = sqrcutDCCprim,
                                filterId = "Damaged Cells (primary)")
 
-sqrcutDCCbact<- matrix(c(7.50, 7.50, 12.5, 12.5,11.0,
-                         7.50, 12.5, 12.5, 11.0,7.90),
-     ncol = 2,
-     nrow = 5)
-colnames(sqrcutDCCbact) <- c("BL1-H", "BL3-H")
-polyGateDCCbact <- polygonGate(.gate = sqrcutDCCbact, 
-                               filterId = "Damaged bacterial Cells")
-
-sqrcutDCCbactprim<- matrix(c(7.50, 7.50, 12.5, 13.0,11.5,
-                             7.80, 12.5, 12.5, 11.0,9.30),
-     ncol = 2,
-     nrow = 5)
-colnames(sqrcutDCCbactprim) <- c("BL1-H", "BL3-H")
-polyGateDCCbactprim <- polygonGate(.gate = sqrcutDCCbactprim, 
-                               filterId = "Damaged bacterial Cells (primary)")
 
 ## Singlet gate ----------------------------------------------------------------
 sqrcutsinglets<- matrix(c(6.0, 14.5, 14.5, 6.0,
@@ -329,41 +270,23 @@ polyGatesinglets <- polygonGate(.gate = sqrcutsinglets, filterId = "Singlets")
 # Add nodes to GS --------------------------------------------------------------
 
 nodesinglets <- gs_pop_add(gsICCMMMV,polyGatesinglets)
-nodesingletsa <- gs_pop_add(gsICCAMS,polyGatesinglets)
+
 
 recompute(gsICCMMMV)
 selset <- gsICCMMMV[sample(1:length(gsICCMMMV),9)]
-selset.bact.iccams <- gsICCAMS
+
 selset.yeast.iccmmmv <- gsICCMMMV[grep("KP_10",sampleNames(gsICCMMMV),
                                        value = TRUE)[c(1:13,15:29)]]
-selset.bact.iccmmmv <- gsICCMMMV[grep("_ME_10",sampleNames(gsICCMMMV),
-                                      value = TRUE)]
-selset.mix.iccmmmv <- gsICCMMMV[grep("KPME_10",sampleNames(gsICCMMMV),
-                                     value = TRUE)[c(1:12,14:37)]]
 
-node1 <- gs_pop_add(gsICCMMMV,polyGateICCbactSConly,parent="Singlets")
 node2 <- gs_pop_add(gsICCMMMV,polyGateICCyeastSConly,parent="Singlets")
 
-
-boolf1 <- booleanFilter(`Bacterial Cells scatter alone|Yeast Cells scatter alone`)
-node12<- gs_pop_add(gsICCMMMV,boolf1,parent="Singlets")
-
-node1a <- gs_pop_add(gsICCAMS,polyGateICCbactSConly,parent="Singlets")
-node2a <- gs_pop_add(gsICCAMS,polyGateICCyeastSConly,parent="Singlets")
-node12a<- gs_pop_add(gsICCAMS,boolf1,parent="Singlets")
-
-
 recompute(gsICCMMMV)
-recompute(gsICCAMS)
+
 recompute(selset.yeast.iccmmmv)
-recompute(selset.bact.iccmmmv)
-recompute(selset.bact.iccams)
-recompute(selset.mix.iccmmmv)
+
 # Optional: below you can inspect the (hierarchical) gating strategy
 # plot(selset.yeast.iccmmmv)
-# plot(selset.bact.iccmmmv)
-# plot(selset.bact.iccams)
-# plot(selset.mix.iccmmmv)
+
 
 # Get singlet stats and visualize ----------------------------------------------
 singletfraction <- gs_pop_get_count_fast(gsICCMMMV,statistic = "freq",
@@ -376,8 +299,8 @@ singletfraction.md$timepointnum <- as.numeric(gsub("t","",
                                               singletfraction.md$timepoint))
 wbsglets <- openxlsx::createWorkbook(title="Alexandra singlets MMMV")
 openxlsx::addWorksheet(wbsglets,sheetName="MMMV_singletFraction")
-openxlsx::addWorksheet(wbsglets,sheetName="AMS_singletFraction")
 openxlsx::writeData(wbsglets,sheet="MMMV_singletFraction",x = singletfraction.md)
+
 # splot <- singletfraction.md %>% ggplot(aes(x=timepointnum,y=Frequency,
 #                                            color=strain,fill=strain))
 # splot + geom_point(size=4) + geom_smooth(se=0.5) + theme_bw()
@@ -389,44 +312,14 @@ splotbp + geom_boxplot() + theme_bw() + facet_wrap(~strain,scale="free_y") +
           scale_fill_brewer(name="Strain or\ncombination",palette = "Dark2") +
           theme(axis.title.x = element_blank())
 
-singletfractiona <- gs_pop_get_count_fast(gsICCAMS,statistic = "freq",
-                                         subpopulations = "/Singlets")
-singletfractiona.md <- inner_join(singletfractiona,mddf.toanalyze,
-                                  by=c("name"="filenames"))
-singletfractiona.md$timepoint <- gsub(".*Alexandra_(t[0-9])_.*","\\1",
-                                      singletfractiona.md$name)
-singletfractiona.md$timepointnum <- as.numeric(gsub("t","",
-                                                singletfractiona.md$timepoint))
-openxlsx::writeData(wbsglets,sheet="AMS_singletFraction",x = singletfractiona.md)
-# splota <- singletfractiona.md %>% ggplot(aes(x=timepointnum,y=Frequency,
-#                                            color=strain,fill=strain))
-# splota + geom_point(size=4) + geom_smooth() + theme_bw()
 openxlsx::saveWorkbook(wbsglets,
                        file="Results/SingletFraction.xlsx",
                        overwrite = TRUE)
 ```
 
-##### In AMS
 
-For cultivation of ME on AMS we observe a similar (rough) decrease:
-
-```{r singletratiogAMS, warning=FALSE,message=FALSE,fig.cap="Fraction of singlet events in AMS over time for ME (Methylobacterium Extorquens).",cache=TRUE,cache.lazy=FALSE}
-splotabp <- singletfractiona.md %>%
-  ggplot(aes(x = timepoint, y = Frequency, fill = strain))
-splotabp + geom_boxplot() + theme_bw() +
-  ylab("Fraction of singlets/total events") +
-  scale_fill_manual(name = "Strain", values = "#7570B3") +
-  theme(axis.title.x = element_blank())
-```
-
-
-#### Singlet gating inspection {.tabset .tabset-pills}
-
-For reference, we display 6 random samples for each singlet gating set.
-
-##### For KP in MMMV
-
-Clearly a lot of non-singlets could be observed for KP in MMMV
+For reference, we display 6 random samples for each singlet gating set. Clearly,
+a lot of non-singlets could be observed for KP in MMMV
 
 ```{r KPsingletinspection, warning=FALSE,message=FALSE,fig.cap="6 randomly selected samples to demonstrate singlet gating for KP",cache=TRUE, cache.lazy=FALSE}
 pICCMMVsing <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),6)] %>%
@@ -434,45 +327,19 @@ pICCMMVsing <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),6)] %>
 pICCMMVsing + geom_hex(bins=256) + theme_bw() + geom_gate(polyGatesinglets)
 ```
 
-##### For ME in MMMV
-
-```{r MEsingletinspection, warning=FALSE,message=FALSE,fig.cap="6 randomly selected samples to demonstrate singlet gating for ME in MMMV",cache=TRUE, cache.lazy=FALSE}
-pICCMMVsingb <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),6)] %>%
-                      ggcyto(aes(x=`BL1-A`,y=`BL1-H`),subset="root")
-pICCMMVsingb + geom_hex(bins=512) + theme_bw() + geom_gate(polyGatesinglets)
-```
-
-##### For ME in AMS
-
-```{r MEamssingletinspection, warning=FALSE,message=FALSE,fig.cap="6 randomly selected samples to demonstrate singlet gating for ME in AMS",cache=TRUE, cache.lazy=FALSE}
-pICCAMSsingb <- selset.bact.iccams[sample(1:length(selset.bact.iccams),6)] %>%
-                      ggcyto(aes(x=`BL1-A`,y=`BL1-H`),subset="root")
-pICCAMSsingb + geom_hex(bins=512) + theme_bw() + geom_gate(polyGatesinglets)
-```
 
 
-##### For KPME in MMV
+##### Scater/fluorescence gating strategy {.tabset .tabset-pills}
 
-```{r KPMEsingletinspection, warning=FALSE,message=FALSE,fig.cap="6 randomly selected samples to demonstrate singlet gating for KPME in MMMV",cache=TRUE, cache.lazy=FALSE}
-pICCAMSsingmix <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),6)] %>%
-                      ggcyto(aes(x=`BL1-A`,y=`BL1-H`),subset="root")
-pICCAMSsingmix + geom_hex(bins=512) + theme_bw() + geom_gate(polyGatesinglets)
-```
+###### Primary gating on scatter alone 
 
-#### Scater/fluorescence gating strategy
-
-##### Primary gating on scatter alone {.tabset .tabset-pills}
-
-###### KP in MMMV
-
-It is clear that based upon scatter alone we have a (minor) overlap between 
-ME and KP. 
 
 ```{r ICCTCCgs_MMMV, echo=FALSE,warning=FALSE,message=FALSE,fig.cap="Example gating strategy for KP in MMMV based on primary gating for scatter alone.",cache=TRUE,cache.lazy=FALSE}
 # Verify gating strategy for yeast, yeast, ICC, MMMMV---------------------------
 pICCMMVsco <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),9)] %>% 
                       ggcyto(aes(x=`SSC-H`,y=`FSC-H`),subset="Singlets")
-pICCMMVsco + geom_hex(bins=256) + theme_bw() + geom_gate(polyGateICCyeastSConly) + ggcyto_par_set(limits="instrument")
+pICCMMVsco + geom_hex(bins=256) + theme_bw() + 
+  geom_gate(polyGateICCyeastSConly) + ggcyto_par_set(limits="instrument")
 
 
 # use officer for slides -------------------------------------------------------
@@ -525,186 +392,25 @@ for(i in 1:length(selset.yeast.iccmmmv)){
                               location = ph_location_type(type = "body"))
   
 }
-## bacteria scatter alone MMMV --------------------------------------------------
-yeastscatterslides <- add_slide(yeastscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastscatterslides <- ph_with(yeastscatterslides,
-                              value="Scatter-based primary gating for bacteria MMMV",
-                              location=ph_location_type(type="title"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = "With reference gate for yeast scatter (alone)", 
-                              location = ph_location_type(type = "body"))
 
-for(i in 1:length(selset.bact.iccmmmv)){
-  yeastscatterslides <- add_slide(yeastscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvscosingleb <- as.ggplot(ggcyto(selset.bact.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`FSC-H`),
-                                        subset="Singlets") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSConly)+
-                                   geom_gate(polyGateICCbactSConly,colour="blue")+ 
-                                   ggcyto_par_set(limits="instrument"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = piccmmmvscosingleb, 
-                              location = ph_location_type(type = "body"))
-  
-}
-
-## bacteria scatter alone AMS --------------------------------------------------
-yeastscatterslides <- add_slide(yeastscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastscatterslides <- ph_with(yeastscatterslides,
-                              value="Scatter-based primary gating for bacteria AMS",
-                              location=ph_location_type(type="title"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = paste0("slide ",3+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.bact.iccams)){
-  yeastscatterslides <- add_slide(yeastscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvscosingleba <- as.ggplot(ggcyto(selset.bact.iccams[i],
-                                        aes(x=`SSC-H`,y=`FSC-H`),
-                                        subset="Singlets") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSConly)+
-                                   geom_gate(polyGateICCbactSConly,colour="blue")+ 
-                                   ggcyto_par_set(limits="instrument"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = piccmmmvscosingleba, 
-                              location = ph_location_type(type = "body"))
-  
-}
-
-## KPME scatter alone MMMV --------------------------------------------------
-yeastscatterslides <- add_slide(yeastscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastscatterslides <- ph_with(yeastscatterslides,
-                              value="Scatter-based primary gating for mix MMMV",
-                              location=ph_location_type(type="title"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = paste0("slide ",5+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)+
-                                               length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.mix.iccmmmv)){
-  yeastscatterslides <- add_slide(yeastscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)+
-                                                 length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvscosingleba <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`FSC-H`),
-                                        subset="Singlets") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSConly)+
-                                   geom_gate(polyGateICCbactSConly,colour="blue")+ 
-                                   ggcyto_par_set(limits="instrument"))
-  yeastscatterslides <- ph_with(yeastscatterslides, 
-                              value = piccmmmvscosingleba, 
-                              location = ph_location_type(type = "body"))
-  
-}
 
 print(yeastscatterslides,target="gatinginspection_singlets.pptx")
 
 
 ```
 
-###### ME in MMMV
 
-Next, we look at the gating based on only scatter for *M. extorquens* alone in MMMV
+###### Secondary gating on scatter and fluorescence
 
-```{r memmviccscob, echo=FALSE, warning=FALSE,message=FALSE, fig.cap="Primary gating based on only scatter for *M. extorquens* alone in MMMV (singlets only).",cache=TRUE, cache.lazy=FALSE}
-pICCMMVscob <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`FSC-H`),subset="Singlets")
-pICCMMVscob + geom_hex(bins=256) + theme_bw() + 
-              geom_gate(polyGateICCyeastSConly) +
-              geom_gate(polyGateICCbactSConly,colour="blue")
-```
-
-###### ME in AMS
-
-Next, we look at the gating based on only scatter for *M. extorquens* alone in AMS.
-Here, we observe a secondary population in some samples that appears to overlap
-with the gate that we would expect for *K. pastoris* (in MMMV)
-
-```{r meamsiccscob, echo=FALSE, warning=FALSE,message=FALSE, fig.cap="Primary gating based on only scatter for *M. extorquens* alone in AMS.",cache=TRUE, cache.lazy=FALSE}
-pICCAMSscob <- selset.bact.iccams[sample(1:length(selset.bact.iccams),9)] %>% 
-                    ggcyto(aes(x=`SSC-H`,y=`FSC-H`),subset="Singlets")
-pICCAMSscob + geom_hex(bins=256) + theme_bw() + 
-              geom_gate(polyGateICCyeastSConly) +
-              geom_gate(polyGateICCbactSConly,colour="blue")
-```
-
-###### Mix in MMMV
-
-Finally, we have a look at how the *M. extorquens* and *K. pastoris* gate for scatter
-capture the cellular population in MMMV.
-
-```{r mixMMMViccscob, echo=FALSE, warning=FALSE,message=FALSE, fig.cap="Primary gating based on only scatter for the mixture in MMV.",cache=TRUE, cache.lazy=FALSE}
-pICCMMVscom <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`FSC-H`),subset="root")
-pICCMMVscom + geom_hex(bins=256) + theme_bw() + 
-              geom_gate(polyGateICCyeastSConly) +
-              geom_gate(polyGateICCbactSConly,colour="blue")
-```
-
-
-
-##### Secondary gating on scatter and fluorescence {.tabset .tabset-pills}
-
-The above serves as a primary noise filter, next we employ the joint *K. pastoris*
-and *M. extorquens* scatter-gated info to look into fluorescence based gating 
-
-###### KP in MMMV
+The above serves as a primary noise filter, next we employ the *K. pastoris*
+scatter-gated info to look into fluorescence based gating 
 
 ```{r fluorescence_gating, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of secondary gating results on KP after filtering based upon the yeast cell scatter gate.",cache=TRUE, cache.lazy=FALSE}
 recompute(selset.yeast.iccmmmv)
-recompute(selset.bact.iccmmmv)
-recompute(selset.bact.iccams)
-recompute(selset.mix.iccmmmv)
+
 
 primaryscatteryeast <- gs_pop_get_gs(selset.yeast.iccmmmv,
-      pop = "/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone")
+      pop = "/Singlets/Yeast Cells scatter alone")
 
 pICCMMVscBL1y <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
                                              9)] %>% 
@@ -716,23 +422,9 @@ pICCMMVscBL1y + geom_hex(bins=256) + geom_gate(polyGateICCyeastSC) +
 
 node3 <- gs_pop_add(selset.yeast.iccmmmv,polyGateICCyeastSC,
                     parent="/Singlets/Yeast Cells scatter alone")
-node4 <- gs_pop_add(selset.bact.iccmmmv,polyGateICCbactSC,
-                    parent="/Singlets/Bacterial Cells scatter alone")
-node5 <- gs_pop_add(selset.bact.iccams,polyGateICCbactSC,
-                    parent="/Singlets/Bacterial Cells scatter alone")
-node6a <- gs_pop_add(selset.mix.iccmmmv,polyGateICCbactSC,
-                     parent="/Singlets/Bacterial Cells scatter alone")
-node6b <- gs_pop_add(selset.mix.iccmmmv,polyGateICCyeastSC,
-                     parent="/Singlets/Yeast Cells scatter alone")
-
-boolf2 <- booleanFilter(`Bacterial Cells scatter|Yeast Cells scatter`)
-node123<- gs_pop_add(selset.mix.iccmmmv,boolf2,
-    parent="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone")
 
 recompute(selset.yeast.iccmmmv)
-recompute(selset.bact.iccmmmv)
-recompute(selset.bact.iccams)
-recompute(selset.mix.iccmmmv)
+
 
 # use officer for slides -------------------------------------------------------
 yeastfluoscatterslides <- read_pptx()
@@ -804,215 +496,15 @@ for(i in 1:length(selset.yeast.iccmmmv)){
                               location = ph_location_type(type = "body"))
   
 }
-## bacteria scatter & BL1 secondary MMMV ---------------------------------------
-yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides,
-                              value="Scatter and fluorescence-based secondary gating for bacteria MMMV",
-                              location=ph_location_type(type="title"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = "With reference gate for yeast fluo/scatter", 
-                              location = ph_location_type(type = "body"))
 
-for(i in 1:length(selset.bact.iccmmmv)){
-  yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluosingleb <- as.ggplot(ggcyto(selset.bact.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone") + geom_hex(bins=256) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSC)+
-                                   geom_gate(polyGateICCbactSC,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = piccmmmvfluosingleb, 
-                              location = ph_location_type(type = "body"))
-  yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluosingleb <- as.ggplot(ggcyto(selset.bact.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone") + 
-                                     geom_hex(bins=256) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSC)+
-                                   geom_gate(polyGateICCbactSC,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = piccmmmvfluosingleb, 
-                              location = ph_location_type(type = "body"))
-  
-}
-
-## bacteria scatter and fluorescence AMS ---------------------------------------
-yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides,
-                              value="Scatter & fluoresence-based secondary gating for bacteria AMS",
-                              location=ph_location_type(type="title"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = paste0("slide ",3+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.bact.iccams)){
-  yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccamsscflsingleba <- as.ggplot(ggcyto(selset.bact.iccams[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone") + 
-                                     geom_hex(bins=256) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSC)+
-                                   geom_gate(polyGateICCbactSC,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = piccamsscflsingleba, 
-                              location = ph_location_type(type = "body"))
-  yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccamsscflsingleba <- as.ggplot(ggcyto(selset.bact.iccams[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                              subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone") +
-                                     geom_hex(bins=256) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSC)+
-                                   geom_gate(polyGateICCbactSC,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = piccamsscflsingleba, 
-                              location = ph_location_type(type = "body"))
-  
-}
-
-## KPME scatter and fluorescence MMMV ------------------------------------------
-yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides,
-                              value="Scatter and fluoresecence-based secondary gating for mix MMMV",
-                              location=ph_location_type(type="title"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = paste0("slide ",5+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)+
-                                               length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.mix.iccmmmv)){
-  yeastfluoscatterslides <- add_slide(yeastfluoscatterslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)+
-                                                 length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvscfl1singleba <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone") +
-                                       geom_hex(bins=256) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSC)+
-                                   geom_gate(polyGateICCbactSC,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoscatterslides <- ph_with(yeastfluoscatterslides, 
-                              value = piccmmmvscfl1singleba, 
-                              location = ph_location_type(type = "body"))
-  
-}
 
 print(yeastfluoscatterslides,target="gatinginspectionfluo_singlets.pptx")
 
 ```
 
-###### ME in MMMV
 
-Next, we inspect the secondary gating for ME in MMMV:
 
-```{r sec_gating_ME, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of secondary gating results on ME in MMMV after filtering based upon the bacterial and yeast cell scatter gate.",cache=TRUE}
-pICCMMVscBL1b <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone")
-pICCMMVscBL1b + geom_hex(bins=256) + geom_gate(polyGateICCyeastSC) + 
-          geom_gate(polyGateICCbactSC,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-###### ME in AMS
-
-Next, we inspect the secondary gating for ME in AMS:
-
-```{r sec_gating_ME_AMS, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of secondary gating results on ME in AMS after filtering based upon the bacterial and yeast cell scatter gate.",cache=TRUE, cache.lazy=FALSE}
-
-pICCAMSscBL1b <- selset.bact.iccams[sample(1:length(selset.bact.iccams),9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone")
-pICCAMSscBL1b + geom_hex(bins=256) + geom_gate(polyGateICCyeastSC) + 
-          geom_gate(polyGateICCbactSC,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-
-```
-
-###### Mix in MMMV
-
-Finally, we inspect the secondary gating for KPME in MMV:
-
-```{r sec_gating_KPME, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of secondary gating results on KPME in MMMV after filtering based upon the bacterial and yeast cell scatter gate.",cache=TRUE, cache.lazy=FALSE}
-pICCMMVscBL1m <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone")
-pICCMMVscBL1m + geom_hex(bins=256) + geom_gate(polyGateICCyeastSC) + 
-          geom_gate(polyGateICCbactSC,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-##### Tertiairy gating ICC/DCC {.tabset .tabset-pills}
+###### Tertiairy gating ICC/DCC 
 
 ```{r iccdccgating_tertofficer,warning=FALSE,message=FALSE,cache=TRUE,cache.lazy=FALSE}
 mixnodes <- gs_get_pop_paths(selset.mix.iccmmmv)
@@ -1069,163 +561,12 @@ for(i in 1:length(selset.yeast.iccmmmv)){
   
   
 }
-### bact MMMV BL1/BL3 tertiary  ----------------------------------------------------
-yeastfluoslides <- add_slide(yeastfluoslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoslides <- ph_with(yeastfluoslides,
-                              value="ICC/DCC tertiary gating for bacteria MMMV",
-                              location=ph_location_type(type="title"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.bact.iccmmmv)){
-  yeastfluoslides <- add_slide(yeastfluoslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluotertsignb <- as.ggplot(ggcyto(selset.bact.iccmmmv[i],
-                                        aes(x=`BL1-H`,y=`BL3-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone/Bacterial Cells scatter") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateDCCbact)+
-                                   geom_gate(polyGateICCbact,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = piccmmmvfluotertsignb, 
-                              location = ph_location_type(type = "body"))
-}
-
-### bact AMS BL1/BL3 tertiary  ----------------------------------------------------
-yeastfluoslides <- add_slide(yeastfluoslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoslides <- ph_with(yeastfluoslides,
-                              value="ICC/DCC tertiary gating for ME in AMS",
-                              location=ph_location_type(type="title"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.bact.iccams)){
-  yeastfluoslides <- add_slide(yeastfluoslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluotertsignba <- as.ggplot(ggcyto(selset.bact.iccams[i],
-                                        aes(x=`BL1-H`,y=`BL3-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone/Bacterial Cells scatter") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateDCCbact)+
-                                   geom_gate(polyGateICCbact,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = piccmmmvfluotertsignba, 
-                              location = ph_location_type(type = "body"))
-}
-
-### Mix MMV BL1/BL3 tertiary  ----------------------------------------------------
-yeastfluoslides <- add_slide(yeastfluoslides,layout = "Section Header",
-                                master = "Office Theme")
-yeastfluoslides <- ph_with(yeastfluoslides,
-                              value="ICC/DCC tertiary gating for Mix in MMV",
-                              location=ph_location_type(type="title"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = "With reference gate for yeast and bacteria separately", 
-                              location = ph_location_type(type = "body"))
-
-for(i in 1:length(selset.mix.iccmmmv)){
-  yeastfluoslides <- add_slide(yeastfluoslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluotertsignmx <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`BL1-H`,y=`BL3-H`),
-                                        subset=mixnodes[8]) + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateDCCbact) + 
-                                   geom_gate(polyGateDCC,colour="firebrick1") +
-                                   geom_gate(polyGateICCbact,colour="darkgreen") +
-                                   geom_gate(polyGateICCyeast,colour="green") +
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = piccmmmvfluotertsignmx, 
-                              location = ph_location_type(type = "body"))
-  yeastfluoslides <- add_slide(yeastfluoslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluotertsignmxbo <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`BL1-H`,y=`BL3-H`),
-                                        subset=mixnodes[6]) + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateDCCbact) + 
-                                   geom_gate(polyGateDCC,colour="firebrick1") +
-                                   geom_gate(polyGateICCbact,colour="darkgreen") +
-                                   geom_gate(polyGateICCyeast,colour="green") +
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = piccmmmvfluotertsignmxbo, 
-                              location = ph_location_type(type = "body"))
-  yeastfluoslides <- add_slide(yeastfluoslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluotertsignmxyo <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`BL1-H`,y=`BL3-H`),
-                                        subset=mixnodes[7]) + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateDCCbact) + 
-                                   geom_gate(polyGateDCC,colour="firebrick1") +
-                                   geom_gate(polyGateICCbact,colour="darkgreen") +
-                                   geom_gate(polyGateICCyeast,colour="green") +
-                                   ggcyto_par_set(limits="instrument"))
-  yeastfluoslides <- ph_with(yeastfluoslides, 
-                              value = piccmmmvfluotertsignmxyo, 
-                              location = ph_location_type(type = "body"))
-}
 
 print(yeastfluoslides,target="gatinginspectionfluo_tertiairy.pptx")
 ```
 
 
-###### KP in MMMV
+
 
 ```{r iccdccgating_tert_y, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random yeast samples after primary and secondary gating."}
 pICCMMVBL1BL3y <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
@@ -1238,435 +579,126 @@ pICCMMVBL1BL3y + geom_hex(bins=256) + geom_gate(polyGateDCC) +
 ```
 
 
-###### ME in MMMV
 
-```{r iccdccgating_tert_bm, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random ME in MMMV samples after primary and secondary gating."}
-pICCMMVBL1BL3b <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets/Bacterial Cells scatter alone/Bacterial Cells scatter")
-pICCMMVBL1BL3b + geom_hex(bins=256) + geom_gate(polyGateDCCbact) + 
-          geom_gate(polyGateICCbact,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-###### ME in AMS
-
-```{r iccdccgating_tert_ba, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random ME in AMS samples after primary and secondary gating."}
-pICCMMVBL1BL3ba <- selset.bact.iccams[sample(1:length(selset.bact.iccams),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets/Bacterial Cells scatter alone/Bacterial Cells scatter")
-pICCMMVBL1BL3ba + geom_hex(bins=256) + geom_gate(polyGateDCCbact) + 
-          geom_gate(polyGateICCbact,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-
-###### Mix in MMMV
-
-Based upon the gating strategy, multiple hierarchical gates can be applied to 
-the dataset:
-
-```{r tertgatemixgh, warning=FALSE,message=FALSE,fig.cap="Gating strategy in case of tertiairy gating on the mix set."}
-plot(selset.mix.iccmmmv,bool=TRUE)
-```
-
-First, the "OR" boolean gates were used to include all data:
-
-```{r iccdccgating_tert_mx, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random mix in MMMV samples after primary and secondary gating. Bacterial ICC and DCC gates are shown in dark green and red, yeast ICC and DCC gates in light green and blue respectively."}
-pICCMMVBL1BL3mx <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset=mixnodes[8])
-pICCMMVBL1BL3mx + geom_hex(bins=256) + geom_gate(polyGateDCCbact) + 
-          geom_gate(polyGateDCC,colour="blue") +
-          geom_gate(polyGateICCbact,colour="darkgreen") +
-          geom_gate(polyGateICCyeast,colour="green") +
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-Then, only the yeast cells were considered:
-
-```{r iccdccgating_tert_mxyo, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random mix in MMMV samples after primary and secondary gating. Bacterial ICC and DCC gates are shown in dark green and red, yeast ICC and DCC gates in light green and blue respectively."}
-
-pICCMMVBL1BL3mxyo <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset=mixnodes[7])
-pICCMMVBL1BL3mxyo + geom_hex(bins=128) + geom_gate(polyGateDCCbact) + 
-          geom_gate(polyGateDCC,colour="blue") +
-          geom_gate(polyGateICCbact,colour="darkgreen") +
-          geom_gate(polyGateICCyeast,colour="green") +
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-Next, only the bacterial cells were considered:
-
-```{r iccdccgating_tert_mxbo, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random mix in MMMV samples after primary and secondary gating. Bacterial ICC and DCC gates are shown in dark green and red, yeast ICC and DCC gates in light green and blue respectively."}
-
-pICCMMVBL1BL3mxbo <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset=mixnodes[6])
-pICCMMVBL1BL3mxbo + geom_hex(bins=256) + geom_gate(polyGateDCCbact) + 
-          geom_gate(polyGateDCC,colour="blue") +
-          geom_gate(polyGateICCbact,colour="darkgreen") +
-          geom_gate(polyGateICCyeast,colour="green") +
-          ggcyto_par_set(limits="instrument") + theme_bw()
-
-node7a <- gs_pop_add(selset.mix.iccmmmv,polyGateICCyeast,
-                     parent="Yeast Cells scatter")
-node7b <- gs_pop_add(selset.mix.iccmmmv,polyGateDCC,
-                     parent="Yeast Cells scatter")
-
-node7c <- gs_pop_add(selset.yeast.iccmmmv,polyGateICCyeast,
-                     parent="Yeast Cells scatter")
-node7d <- gs_pop_add(selset.yeast.iccmmmv,polyGateDCC,
-                     parent="Yeast Cells scatter")
-
-node8a <- gs_pop_add(selset.mix.iccmmmv,polyGateICCbact,
-                     parent="Bacterial Cells scatter")
-node8b <- gs_pop_add(selset.mix.iccmmmv,polyGateDCCbact,
-                     parent="Bacterial Cells scatter")
-
-node8c <- gs_pop_add(selset.bact.iccmmmv,polyGateICCbact,
-                     parent="Bacterial Cells scatter")
-node8d <- gs_pop_add(selset.bact.iccmmmv,polyGateDCCbact,
-                     parent="Bacterial Cells scatter")
-
-node8e <- gs_pop_add(selset.bact.iccams,polyGateICCbact,
-                     parent="Bacterial Cells scatter")
-node8f <- gs_pop_add(selset.bact.iccams,polyGateDCCbact,
-                     parent="Bacterial Cells scatter")
-
-boolf3 <- booleanFilter(`Intact Bacterial Cells fluo|Intact Yeast Cells`)
-node1234<- gs_pop_add(selset.mix.iccmmmv,boolf3,
-    parent="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone/Bacterial Cells scatter|Yeast Cells scatter")
-
-recompute(selset.yeast.iccmmmv)
-recompute(selset.bact.iccmmmv)
-recompute(selset.bact.iccams)
-recompute(selset.mix.iccmmmv)
-```
-
-##### Primary gating ICC/DCC {.tabset .tabset-pills}
+##### Primary gating ICC/DCC 
 
 In order to be more cautious about losing potentially relevant cell populations,
 we also applied immediate gating on the singlets for ICC/DCC inference.
 
-###### KP in MMMV
-
 ```{r iccdccgating_primyp, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random yeast samples after singlet gating."}
-pICCMMVBL1BL3yp <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets")
-pICCMMVBL1BL3yp + geom_hex(bins=256) + geom_gate(polyGateDCCprim) + 
-          geom_gate(polyGateICCyeastprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-###### ME in MMMV
-
-```{r iccdccgating_primmbm, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random ME in MMMV samples after singlet gating."}
-pICCMMVBL1BL3yb <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets")
-pICCMMVBL1BL3yb + geom_hex(bins=256) + geom_gate(polyGateDCCbactprim) + 
-          geom_gate(polyGateICCbactprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-###### ME in AMS
-
-```{r iccdccgating_primmba, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random ME in AMS samples after singlet gating."}
-pICCMMVBL1BL3yba <- selset.bact.iccams[sample(1:length(selset.bact.iccams),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets")
-pICCMMVBL1BL3yba + geom_hex(bins=256) + geom_gate(polyGateDCCbactprim) + 
-          geom_gate(polyGateICCbactprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
+pICCMMVBL1BL3yp <-
+  selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
+                              9)] %>%
+  ggcyto(aes(x = `BL1-H`, y = `BL3-H`),
+         subset = "/Singlets")
+pICCMMVBL1BL3yp + geom_hex(bins = 256) + geom_gate(polyGateDCCprim) +
+  geom_gate(polyGateICCyeastprim, colour = "darkgreen") +
+  ggcyto_par_set(limits = "instrument") + theme_bw()
 ```
 
 
-###### Mix in MMMV
+##### Primary gating BL1/SSC, secondary ICC/DCC 
 
-Based upon the primary gating strategy, four subsets of the singlet gate can be
-applied to the dataset.
-
-```{r primgatemixgh, warning=FALSE,message=FALSE,fig.cap="Gating strategy in case of tertiairy gating on the mix set."}
-node9a <- gs_pop_add(selset.mix.iccmmmv,polyGateICCbactprim,parent="Singlets")
-node9b <- gs_pop_add(selset.mix.iccmmmv,polyGateDCCbactprim,parent="Singlets")
-node9c <- gs_pop_add(selset.mix.iccmmmv,polyGateICCyeastprim,parent="Singlets")
-node9d <- gs_pop_add(selset.mix.iccmmmv,polyGateDCCprim,parent="Singlets")
-recompute(selset.mix.iccmmmv)
-plot(selset.mix.iccmmmv,bool=TRUE)
-# plot(selset.yeast.iccmmmv,bool=TRUE)
-```
-
-Due to the very strong overlap in yeast and bacteria gates it is very unlikely
-that accurate concentrations can be found based upon primary gating for ICC/DCC 
-
-```{r iccdccgating_primmmix, warning=FALSE,message=FALSE,fig.cap="ICC and DCC gates for 9 random Mix in MMMV samples after singlet gating."}
-pICCMMVBL1BL3ymx <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`BL1-H`,y=`BL3-H`),
-              subset="/Singlets")
-pICCMMVBL1BL3ymx + geom_hex(bins=256) +
-          geom_gate(polyGateDCCbactprim) + 
-          geom_gate(polyGateDCCprim,colour="firebrick1") +
-          geom_gate(polyGateICCbactprim,colour="darkgreen") +
-          geom_gate(polyGateICCyeastprim,colour="green") +
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-##### Primary gating BL1/SSC, secondary ICC/DCC {.tabset .tabset-pills}
-
-###### KP in MMMV
 
 ```{r fluorescencescprim_gating, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of primary gating results on KP after filtering based upon the singlets.",cache=TRUE, cache.lazy=FALSE}
 recompute(selset.yeast.iccmmmv)
-recompute(selset.bact.iccmmmv)
-recompute(selset.bact.iccams)
-recompute(selset.mix.iccmmmv)
 
-node10a <- gs_pop_add(selset.yeast.iccmmmv,polyGateICCyeastSCprim,parent="/Singlets")
-node10b <- gs_pop_add(selset.mix.iccmmmv,polyGateICCyeastSCprim,parent="/Singlets")
 
-pICCMMVBL1SSCy <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets")
-pICCMMVBL1SSCy + geom_hex(bins=256) + geom_gate(polyGateICCyeastSCprim) + 
-          geom_gate(polyGateICCbactSCprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
+node10a <- gs_pop_add(selset.yeast.iccmmmv,
+                      polyGateICCyeastSCprim,
+                      parent = "/Singlets")
 
-# pICCMMVBL1SSCyfsc <- selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
-#                                              9)] %>% 
-#                       ggcyto(aes(x=`FSC-H`,y=`BL1-H`),
-#               subset="/Singlets")
-# 
-# pICCMMVBL1SSCyfsc + geom_hex(bins=256) + 
-#           ggcyto_par_set(limits="instrument") + theme_bw()
+
+pICCMMVBL1SSCy <-
+  selset.yeast.iccmmmv[sample(1:length(selset.yeast.iccmmmv),
+                              9)] %>%
+  ggcyto(aes(x = `SSC-H`, y = `BL1-H`),
+         subset = "/Singlets")
+pICCMMVBL1SSCy + geom_hex(bins = 256) + geom_gate(polyGateICCyeastSCprim) +
+  geom_gate(polyGateICCbactSCprim, colour = "darkgreen") +
+  ggcyto_par_set(limits = "instrument") + theme_bw()
+
+
 
 # use officer for slides -------------------------------------------------------
 fluoscatterprimslides <- read_pptx()
-fluoscatterprimslides <- add_slide(fluoscatterprimslides,layout = "Title Slide",
-                                master = "Office Theme")
+fluoscatterprimslides <-
+  add_slide(fluoscatterprimslides, layout = "Title Slide",
+            master = "Office Theme")
 # layout_properties(yeastscatterslides,layout = "Title Slide")
 fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="Gating manual verification slides - SSC/BL1 as primary",
-                              location=ph_location_type(type="ctrTitle"))
+                                 value = "Gating manual verification slides - SSC/BL1 as primary",
+                                 location = ph_location_type(type = "ctrTitle"))
 fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="For check by Myrsini and Alexandra",
-                              location=ph_location_type(type="subTitle"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, value = "slide 1", 
-                              location = ph_location_type(type = "sldNum"))
+                                 value = "For check by Myrsini and Alexandra",
+                                 location = ph_location_type(type = "subTitle"))
+fluoscatterprimslides <- ph_with(
+  fluoscatterprimslides,
+  value = format(Sys.Date()),
+  location = ph_location_type(type = "dt")
+)
+fluoscatterprimslides <-
+  ph_with(fluoscatterprimslides,
+          value = "slide 1",
+          location = ph_location_type(type = "sldNum"))
 
-fluoscatterprimslides <- add_slide(fluoscatterprimslides,layout = "Section Header",
-                                master = "Office Theme")
+fluoscatterprimslides <-
+  add_slide(fluoscatterprimslides, layout = "Section Header",
+            master = "Office Theme")
 
 fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="Scatter & fluorescence -based primary gating for yeast MMMV",
-                              location=ph_location_type(type="title"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, value = "slide 2", 
-                              location = ph_location_type(type = "sldNum"))
+                                 value = "Scatter & fluorescence -based primary gating for yeast MMMV",
+                                 location = ph_location_type(type = "title"))
+fluoscatterprimslides <- ph_with(
+  fluoscatterprimslides,
+  value = format(Sys.Date()),
+  location = ph_location_type(type = "dt")
+)
+fluoscatterprimslides <-
+  ph_with(fluoscatterprimslides,
+          value = "slide 2",
+          location = ph_location_type(type = "sldNum"))
 ### yeast scatter & BL1 primary ----------------------------------------------
-for(i in 1:length(selset.yeast.iccmmmv)){
+for (i in 1:length(selset.yeast.iccmmmv)) {
   fluoscatterprimslides <- add_slide(fluoscatterprimslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                                value = paste0("slide ",i+2), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvflscprimsing <- as.ggplot(ggcyto(selset.yeast.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets") + 
-                                     geom_hex(bins=512) +
-                                     geom_gate(polyGateICCyeastSCprim) + 
-                                     geom_gate(polyGateICCbactSCprim,
-                                               colour="darkgreen") + 
-          theme_bw()+
-                                   ggcyto_par_set(limits="instrument"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = piccmmmvflscprimsing, 
-                              location = ph_location_type(type = "body"))
+                                     layout = "Title and Content",
+                                     master = "Office Theme")
+  fluoscatterprimslides <- ph_with(
+    fluoscatterprimslides,
+    value = format(Sys.Date()),
+    location = ph_location_type(type = "dt")
+  )
+  fluoscatterprimslides <- ph_with(
+    fluoscatterprimslides,
+    value = paste0("slide ", i + 2),
+    location = ph_location_type(type = "sldNum")
+  )
+  piccmmmvflscprimsing <- as.ggplot(
+    ggcyto(selset.yeast.iccmmmv[i],
+           aes(x = `SSC-H`, y = `BL1-H`),
+           subset = "/Singlets") +
+      geom_hex(bins = 512) +
+      geom_gate(polyGateICCyeastSCprim) +
+      geom_gate(polyGateICCbactSCprim,
+                colour = "darkgreen") +
+      theme_bw() +
+      ggcyto_par_set(limits = "instrument")
+  )
+  fluoscatterprimslides <- ph_with(fluoscatterprimslides,
+                                   value = piccmmmvflscprimsing,
+                                   location = ph_location_type(type = "body"))
 }
-## bacteria scatter & BL1 primary MMMV ---------------------------------------
-fluoscatterprimslides <- add_slide(fluoscatterprimslides,layout = "Section Header",
-                                master = "Office Theme")
-fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="Scatter and fluorescence-based primary gating for ME in MMMV",
-                              location=ph_location_type(type="title"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = paste0("slide ",2+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = "With reference gate for yeast fluo/scatter", 
-                              location = ph_location_type(type = "body"))
-for(i in 1:length(selset.bact.iccmmmv)){
-  fluoscatterprimslides <- add_slide(fluoscatterprimslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                                value = paste0("slide ",i+3+length(selset.yeast.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvfluosinglepb <- as.ggplot(ggcyto(selset.bact.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets") + geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSCprim)+
-                                   geom_gate(polyGateICCbactSCprim,
-                                             colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = piccmmmvfluosinglepb, 
-                              location = ph_location_type(type = "body"))
-}
-## bacteria scatter and BL1 primary in AMS ---------------------------------------
-fluoscatterprimslides <- add_slide(fluoscatterprimslides,layout = "Section Header",
-                                master = "Office Theme")
-fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="Scatter & fluoresence-based primary gating for ME in AMS",
-                              location=ph_location_type(type="title"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = paste0("slide ",3+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
 
-for(i in 1:length(selset.bact.iccams)){
-  fluoscatterprimslides <- add_slide(fluoscatterprimslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccamsscflsinglepba <- as.ggplot(ggcyto(selset.bact.iccams[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets") + 
-                                     geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSCprim)+
-                                   geom_gate(polyGateICCbactSCprim,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = piccamsscflsinglepba, 
-                              location = ph_location_type(type = "body"))
-}
-# KPME scatter and fluorescence MMMV ------------------------------------------
-fluoscatterprimslides <- add_slide(fluoscatterprimslides,layout = "Section Header",
-                                master = "Office Theme")
-fluoscatterprimslides <- ph_with(fluoscatterprimslides,
-                              value="Scatter and fluoresecence-based primary gating for mix MMMV",
-                              location=ph_location_type(type="title"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = paste0("slide ",5+length(selset.yeast.iccmmmv)+
-                                               length(selset.bact.iccmmmv)+
-                                               length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-
-for(i in 1:length(selset.mix.iccmmmv)){
-  fluoscatterprimslides <- add_slide(fluoscatterprimslides,
-                                  layout = "Title and Content",
-                                  master = "Office Theme")
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = format(Sys.Date()), 
-                              location = ph_location_type(type = "dt"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                                value = paste0("slide ",i+4+
-                                                 length(selset.yeast.iccmmmv)+
-                                                 length(selset.bact.iccmmmv)+
-                                                 length(selset.bact.iccams)), 
-                              location = ph_location_type(type = "sldNum"))
-  piccmmmvscfl1singlepm <- as.ggplot(ggcyto(selset.mix.iccmmmv[i],
-                                        aes(x=`SSC-H`,y=`BL1-H`),
-                                        subset="/Singlets/Bacterial Cells scatter alone|Yeast Cells scatter alone") +
-                                       geom_hex(bins=512) + 
-                                   theme_bw() + 
-                                   geom_gate(polyGateICCyeastSCprim)+
-                                   geom_gate(polyGateICCbactSCprim,colour="darkgreen")+
-                                   ggcyto_par_set(limits="instrument"))
-  fluoscatterprimslides <- ph_with(fluoscatterprimslides, 
-                              value = piccmmmvscfl1singlepm, 
-                              location = ph_location_type(type = "body"))
-  
-}
 
 print(fluoscatterprimslides,target="gatinginspectionBL1SSCprimary_singlets.pptx")
 
 ```
 
-###### ME in MMMV
 
-```{r fluorescencescprim_gatingb, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of primary gating results on ME in MMMV after filtering based upon the singlets.",cache=TRUE, cache.lazy=FALSE}
 
-pICCMMVscBLSC1b <- selset.bact.iccmmmv[sample(1:length(selset.bact.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets")
-pICCMMVscBLSC1b + geom_hex(bins=256) + geom_gate(polyGateICCyeastSCprim) + 
-          geom_gate(polyGateICCbactSCprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
+#### Results ICC/DCC
 
-###### ME in AMS
-
-```{r fluorescencescprim_gatingba, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of primary gating results on ME in AMS after filtering based upon the singlets.",cache=TRUE, cache.lazy=FALSE}
-
-pICCMMVscBLSC1ba <- selset.bact.iccams[sample(1:length(selset.bact.iccams),
-                                             9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets")
-pICCMMVscBLSC1ba + geom_hex(bins=256) + geom_gate(polyGateICCyeastSCprim) + 
-          geom_gate(polyGateICCbactSCprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-###### Mix in MMMV
-
-```{r fluorescencescprim_gatingmx, echo=TRUE, warning=FALSE,message=FALSE,cache=TRUE, fig.cap="Demonstration of primary gating results on Mix in MMMV after filtering based upon the singlets.",cache=TRUE, cache.lazy=FALSE}
-
-pICCMMVscBLSC1mx <- selset.mix.iccmmmv[sample(1:length(selset.mix.iccmmmv),
-                                             9)] %>% 
-                      ggcyto(aes(x=`SSC-H`,y=`BL1-H`),
-              subset="/Singlets")
-pICCMMVscBLSC1mx + geom_hex(bins=256) + geom_gate(polyGateICCyeastSCprim) + 
-          geom_gate(polyGateICCbactSCprim,colour="darkgreen") + 
-          ggcyto_par_set(limits="instrument") + theme_bw()
-```
-
-### Results ICC/DCC
-
-#### From tertiary gating
+##### From tertiary gating
 
 ```{r ICCDCCtergat}
 # iccmeta <- metadata_all %>% dplyr::filter(`Toanalyze?`=="Yes"&target=="ICC")
@@ -1842,424 +874,7 @@ tertallsumd.plot + geom_point(size=3) + geom_errorbar(aes(ymin=avg_conc,
 ```
 
 
-## Cell size and biovolume over time
-
-#### Build size model
-
-##### Extract bead information - conventional beads
-
-```{r sizemodbuild, echo=FALSE,warning=FALSE}
-# Read bead FCS files ----------------------------------------------------------
-beadsfs <- read.flowSet(path="source_data/size_beads/",pattern="*.fcs",
-                        emptyValue = FALSE)
-# Extract voltages for comparison ----------------------------------------------
-# beadsfs[[1]]@description$`$P11N` # FSC-H
-# beadsfs[[1]]@description$`$P12N` # SSC-H
-# beadsfs[[1]]@description$`#TR1` # fluorescence threshold on BL1
-fsch_voltage <- as.numeric(unique(fsApply(beadsfs,
-                                          function(x)x@description$`$P11V`)))
-ssch_voltage <- as.numeric(unique(fsApply(beadsfs,
-                                          function(x)x@description$`$P12V`)))
-thresholdbeads <- unique(fsApply(beadsfs,function(x)x@description$`#TR1`))
-
-# Transform FCS data -----------------------------------------------------------
-chnls <- colnames(beadsfs)[2:28]
-transList <- transformerList(chnls,trans.obj)
-gatingsetsizebeads <- GatingSet(beadsfs)
-gatingsetsizebeads <- transform(gatingsetsizebeads, transList)
-beadsfs_transformed <- cytoset_to_flowSet(gs_pop_get_data(gatingsetsizebeads))
-
-# Gate definition for the beads ------------------------------------------------
-
-sqrcut02um <- matrix(c(5.850,5.850,9.350,9.350,
-                       7.500,8.475,8.475,7.500),
-                      ncol=2, nrow=4)
-colnames(sqrcut02um) <- c("FSC-H","SSC-H")
-polyGate_02umSC <- polygonGate(.gate=sqrcut02um, filterId = "200nm")
-
-sqrcut05um <- matrix(c(6.750,6.750,9.750,9.750,
-                       9.650,10.25,10.25,9.650),
-                      ncol=2, nrow=4)
-colnames(sqrcut05um) <- c("FSC-H","SSC-H")
-polyGate_05umSC <- polygonGate(.gate=sqrcut05um, filterId = "500nm")
-
-sqrcut1um <- matrix(c(10.15,10.15,11.25,11.25,
-                      11.00,12.50,12.50,11.00),
-                      ncol=2, nrow=4)
-colnames(sqrcut1um) <- c("FSC-H","SSC-H")
-polyGate_1umSC <- polygonGate(.gate=sqrcut1um, filterId = "1000nm")
-
-# Visualize gates --------------------------------------------------------------
-pbeads <- beadsfs_transformed %>% ggcyto(aes(x=`FSC-H`,y=`SSC-H`))
-pbeads + geom_hex(bins=256) + theme_bw() + labs_cyto("marker") +
-         geom_gate(polyGate_02umSC) + 
-         geom_gate(polyGate_05umSC,colour="blue") +
-         geom_gate(polyGate_1umSC,colour="green")
-# Subset to beads, combine and merge -------------------------------------------
-names1um <- grep("1um",sampleNames(beadsfs),value=TRUE)
-names500nm <- grep("0.5um",sampleNames(beadsfs),value=TRUE)
-names200nm <- grep("0.2um",sampleNames(beadsfs),value=TRUE)
-fs1um <- Subset(beadsfs_transformed[names1um],polyGate_1umSC)
-fs500nm <- Subset(beadsfs_transformed[names500nm],polyGate_05umSC)
-fs200nm <- Subset(beadsfs_transformed[names200nm],polyGate_02umSC)
-
-allbeads <- rbind2(fs200nm,rbind2(fs500nm,fs1um))
-allbeads.merged <- FCS_pool(allbeads,"*")
-
-# Create filterlist
-filterslmerge <- filters(list(polyGate_02umSC,
-                              polyGate_05umSC,
-                              polyGate_1umSC))
-flistmerge <- list(filterslmerge)
-names(flistmerge) <- flowCore::sampleNames(allbeads.merged)
-
-pdfbeads <- phenoData(allbeads)
-pdfbeads$beadsize <- c(rep(0.2,3),rep(0.5,3),rep(1,3))
-```
-
-##### Extract bead information - creative beads
-
-```{r sizemodbuild, echo=FALSE,warning=FALSE}
-# Read bead FCS files ----------------------------------------------------------
-beadsfs_crea <- read.flowSet(path="source_data/size_beads/josefien/",pattern="*.fcs",
-                        emptyValue = FALSE)
-# Extract voltages for comparison ----------------------------------------------
-# beadsfs_crea[[1]]@description$`$P11N` # FSC-H
-# beadsfs_crea[[1]]@description$`$P12N` # SSC-H
-# beadsfs_crea[[1]]@description$`#TR1` # fluorescence threshold on BL1
-fsch_voltage_crea <- as.numeric(unique(fsApply(beadsfs_crea,
-                                          function(x)x@description$`$P11V`)))
-ssch_voltage_crea <- as.numeric(unique(fsApply(beadsfs_crea,
-                                          function(x)x@description$`$P12V`)))
-thresholdbeads_crea <- unique(fsApply(beadsfs_crea,function(x)x@description$`#TR1`))
-
-# Transform FCS data -----------------------------------------------------------
-chnls <- colnames(beadsfs_crea)[2:28]
-transList <- transformerList(chnls,trans.obj)
-gatingsetsizebeads_crea <- GatingSet(beadsfs_crea)
-gatingsetsizebeads_crea <- transform(gatingsetsizebeads_crea, transList)
-beadsfs_transformed_crea <- cytoset_to_flowSet(gs_pop_get_data(gatingsetsizebeads_crea))
-
-# Gate definition for the beads ------------------------------------------------
-
-# sqrcut02um <- matrix(c(5.850,5.850,9.350,9.350,
-#                        7.500,8.475,8.475,7.500),
-#                       ncol=2, nrow=4)
-# colnames(sqrcut02um) <- c("FSC-H","SSC-H")
-# polyGate_02umSC <- polygonGate(.gate=sqrcut02um, filterId = "200nm")
-
-
-sqrcutallbeads <- matrix(c(5.00,5.00,12.50,12.50,
-                           5.00,12.5,12.50,5.00),
-                      ncol=2, nrow=4)
-colnames(sqrcutallbeads) <- c("FSC-H","SSC-H")
-polyGate_allbeadsSC <- polygonGate(.gate=sqrcutallbeads, filterId = "beadsSC")
-
-sqrcut05um <- matrix(c(7.750,7.750,8.750,8.750,
-                       6.450,7.300,7.300,6.450),
-                      ncol=2, nrow=4)
-colnames(sqrcut05um) <- c("FSC-H","SSC-H")
-polyGate_05umSC <- polygonGate(.gate=sqrcut05um, filterId = "500nm")
-
-sqrcut1um <- matrix(c(8.15,8.15,9.50,9.50,
-                      7.50,8.25,8.25,7.50),
-                      ncol=2, nrow=4)
-colnames(sqrcut1um) <- c("FSC-H","SSC-H")
-polyGate_1umSC <- polygonGate(.gate=sqrcut1um, filterId = "1000nm")
-
-sqrcut2umAttuneFluoL1 <- matrix(c(10.9,10.9,11.15,11.15,
-                                  6.50,7.50,7.50,6.50),
-                      ncol=2, nrow=4)
-colnames(sqrcut2umAttuneFluoL1) <- c("FSC-H","BL1-H")
-polyGate_AttuneFluoL1 <- polygonGate(.gate=sqrcut2umAttuneFluoL1,
-                                     filterId = "2400nmFA")
-
-sqrcut2umAttuneSCL1 <- matrix(c(10.9,10.9,11.15,11.15,
-                                10.0,11.25,11.25,10.0),
-                      ncol=2, nrow=4)
-colnames(sqrcut2umAttuneSCL1) <- c("FSC-H","SSC-H")
-polyGate_AttuneSCL1 <- polygonGate(.gate=sqrcut2umAttuneSCL1,
-                                     filterId = "2400nmSC")
-
-sqrcut3umAttuneFluoL1 <- matrix(c(11.15,11.15,11.35,11.35,
-                                  6.50,13.50,13.50,6.50),
-                      ncol=2, nrow=4)
-colnames(sqrcut3umAttuneFluoL1) <- c("FSC-H","BL1-H")
-polyGate_AttuneFluoL234 <- polygonGate(.gate=sqrcut3umAttuneFluoL1,
-                                     filterId = "3200nmFA")
-
- 
-
-nodebeadscrea1 <- gs_pop_add(gatingsetsizebeads_crea,polyGate_allbeadsSC)
-nodebeadscrea2 <- gs_pop_add(gatingsetsizebeads_crea,
-                             polyGate_05umSC,
-                             parent="beadsSC")
-nodebeadscrea3 <- gs_pop_add(gatingsetsizebeads_crea,
-                             polyGate_1umSC,
-                             parent="beadsSC")
-nodebeadscrea4 <- gs_pop_add(gatingsetsizebeads_crea,
-                             polyGate_AttuneFluoL1,
-                             parent="beadsSC")
-nodebeadscrea5 <- gs_pop_add(gatingsetsizebeads_crea,
-                             polyGate_AttuneSCL1,
-                             parent="beadsSC")
-nodebeadscrea6 <- gs_pop_add(gatingsetsizebeads_crea,
-                             polyGate_AttuneFluoL234,
-                             parent="beadsSC")
-
-plot(gatingsetsizebeads_crea)
-recompute(gatingsetsizebeads_crea)
-
-# Visualize gates --------------------------------------------------------------
-selsamps <- sampleNames(beadsfs_transformed_crea)[c(3,
-                                        5:length(sampleNames(beadsfs_transformed_crea)))]
-
-pbeads <- beadsfs_transformed_crea[selsamps] %>% ggcyto(aes(x=`FSC-H`,y=`SSC-H`))
-pbeads + geom_hex(bins=512) + theme_bw() + labs_cyto("marker") +
-         geom_gate(polyGate_allbeadsSC) +
-         geom_gate(polyGate_05umSC,colour="blue") +
-         geom_gate(polyGate_1umSC,colour="green")
-
-pbeads_gs <- gatingsetsizebeads_crea[selsamps[2]] %>%
-  ggcyto(aes(x=`FSC-H`,y=`SSC-H`),subset="beadsSC")
-pbeads_gs + geom_hex(bins=256) + theme_bw() + labs_cyto("marker") +
-        ggcyto_par_set(limits="instrument")+
-         geom_gate(polyGate_05umSC,colour="blue") +
-         geom_gate(polyGate_1umSC,colour="green") + 
-         geom_gate(polyGate_AttuneSCL1)
-
-fsApply(beadsfs_transformed_crea,function(x)x@description$`$P11V`)
-fsApply(beadsfs_transformed_crea,function(x)x@description$`$P12V`)
-
-pbeadsfluo <- gatingsetsizebeads_crea[selsamps[4]] %>% ggcyto(aes(x=`FSC-H`,y=`BL1-H`),
-                                                              subset="beadsSC")
-pbeadsfluo + geom_hex(bins=512) + theme_bw() + 
-  labs_cyto("marker") + geom_gate(polyGate_AttuneFluoL1) + 
-  geom_gate(polyGate_AttuneFluoL234,colour="green")
-
-pbeadsfluoA <- gatingsetsizebeads_crea[selsamps[4]] %>% ggcyto(aes(x=`FSC-A`,y=`BL1-H`),
-                                                              subset="beadsSC")
-pbeadsfluoA + geom_hex(bins=512) + theme_bw()
-
-pbeadsfluossc <- beadsfs_transformed_crea[selsamps[4]] %>% ggcyto(aes(x=`SSC-H`,y=`BL1-H`))
-pbeadsfluossc + geom_hex(bins=512) + theme_bw() 
-
-# Subset to beads, combine and merge -------------------------------------------
-fscrea500nm <- Subset(beadsfs_transformed_crea[selsamps[1]],polyGate_05umSC)
-fscrea1um <- Subset(beadsfs_transformed_crea[selsamps[2]],polyGate_1umSC)
-fscrea2400nm <- Subset(beadsfs_transformed_crea[selsamps[4]],polyGate_AttuneSCL1)
-
-
-allbeads_Crea <- rbind2(fscrea500nm,rbind2(fscrea1um,fscrea2400nm))
-allbeads_crea.merged <- FCS_pool(allbeads_Crea,"*")
-
-# Create filterlist
-filterslmerge <- filters(list(polyGate_05umSC,
-                              polyGate_1umSC,
-                              polyGate_AttuneSCL1))
-flistmerge <- list(filterslmerge)
-names(flistmerge) <- flowCore::sampleNames(allbeads_crea.merged)
-
-pdfbeads <- phenoData(allbeads_Crea)
-pdfbeads$beadsize <- c(0.5,1,2.4)
-```
-
-
-#### Size model building and applying
-
-##### Building
-
-```{r buildsizemod}
-# only for the yeast pop
-# plot(selset.yeast.iccmmmv, bool=TRUE)
-primyeastfs.sing <- cytoset_to_flowSet(gs_pop_get_data(selset.yeast.iccmmmv,
-                                    y=yeastnodes[9]))
-tertyeastfs.sing <- cytoset_to_flowSet(gs_pop_get_data(selset.yeast.iccmmmv,
-                                    y=yeastnodes[6]))
-tertyeastfs.sing.icc <- cytoset_to_flowSet(gs_pop_get_data(selset.yeast.iccmmmv,
-                                    y=yeastnodes[7]))
-
-# checking if flowSets correspond to settings used for the beads ---------------
-fsch_voltage.icc <- as.numeric(unique(fsApply(tertyeastfs.sing.icc,
-                                          function(x)x@description$`$P11V`)))
-ssch_voltage.icc <- as.numeric(unique(fsApply(tertyeastfs.sing.icc,
-                                          function(x)x@description$`$P12V`)))
-thresholdbeads.icc <- unique(fsApply(tertyeastfs.sing.icc,
-                                     function(x)x@description$`#TR1`))
-
-
-
-
-fsch_voltage.sypro <- as.numeric(unique(fsApply(hierarchfsSYPRO.clean.atd,
-                                          function(x)x@description$`$P11V`)))
-ssch_voltage.sypro <- as.numeric(unique(fsApply(hierarchfsSYPRO.clean.atd,
-                                          function(x)x@description$`$P12V`)))
-thresholdbeads.sypro <- unique(fsApply(hierarchfsSYPRO.clean.atd,
-                                     function(x)x@description$`#TR1`))
-thresholdbeads.sypro2 <- unique(fsApply(hierarchfsSYPRO.clean.atd,
-                                     function(x)x@description$`#TR2`))
-
-fsch_voltage.bodipy <- as.numeric(unique(fsApply(hierarchfsBODIPYKP.clean.atd,
-                                          function(x)x@description$`$P11V`)))
-ssch_voltage.bodipy <- as.numeric(unique(fsApply(hierarchfsBODIPYKP.clean.atd,
-                                          function(x)x@description$`$P12V`)))
-thresholdbeads.bodipy <- unique(fsApply(hierarchfsBODIPYKP.clean.atd,
-                                     function(x)x@description$`#TR1`))
-thresholdbeads.bodipy2 <- unique(fsApply(hierarchfsBODIPYKP.clean.atd,
-                                     function(x)x@description$`#TR2`))
-# Run (abridged version of) KytoSize -------------------------------------------
-library(gam)
-# sizeresicc <- KytoSize(fsetICC.iccgate,
-#                        fcs_mp = allbeads.merged,
-#                        flist=flistmerge,
-#                        bead_selection=c(0.2,0.5,1),
-#                        param=c("FSC-H","SSC-H"),
-#                        format="summary")
-## General parameters ----------------------------------------------------------
-fcs_mp  <- allbeads_crea.merged
-flist   <- flistmerge
-p_train <- 0.75
-bead_selection <- c(0.5,1,2.4)
-param <- c("FSC-H","SSC-H")
-format <- "summary"
-plot <- TRUE
-sample_size <- 1.1e3L
-return_models <- TRUE
-ref_model <- NULL
-size_model <- NULL
-
-# Step 1) Denoise the data
-fcs_mp <- fcs_mp[, param]
-
-fcs_mp_1 <-
-  run_quiet(FCS_resample(Subset(fcs_mp, flist[[1]][1][[1]]), sample=278))
-fcs_mp_2 <-
-  run_quiet(FCS_resample(Subset(fcs_mp, flist[[1]][2][[1]]), sample=963))
-fcs_mp_3 <-
-  run_quiet(FCS_resample(Subset(fcs_mp, flist[[1]][3][[1]]), sample=5e3))
-
-# Step 2: make dataset to train model
-ssc_mp <-
-  data.table(
-    Size = c(
-      rep(0.5, nrow(fcs_mp_1[[1]]@exprs)),
-      rep(1, nrow(fcs_mp_2[[1]]@exprs)),
-      rep(2.4, nrow(fcs_mp_3[[1]]@exprs))
-    ),
-    param_1 = c(
-      fcs_mp_1[[1]]@exprs[, param[1]],
-      fcs_mp_2[[1]]@exprs[, param[1]],
-      fcs_mp_3[[1]]@exprs[, param[1]]
-    ),
-    param_2 = c(
-      fcs_mp_1[[1]]@exprs[, param[2]],
-      fcs_mp_2[[1]]@exprs[, param[2]],
-      fcs_mp_3[[1]]@exprs[, param[2]]
-    )
-  )
-# Filter out relevant bead sets
-ssc_mp <- ssc_mp[ssc_mp$Size %in% bead_selection,]
-
-# Step 3: Set model parameters
-fitControl <- caret::trainControl(## 10-fold CV
-  method = "repeatedcv",
-  number = 10,
-  ## repeated ten times
-  repeats = 3)
-
-# Step 4: Create data partitions
-trainIndex <-
-  caret::createDataPartition(ssc_mp$Size, p = p_train)
-train_data <- ssc_mp[trainIndex$Resample1,]
-test_data <- ssc_mp[-trainIndex$Resample1,]
-train_data_BV <- train_data %>%
-  mutate(Biovolume = pi * ((Size) ^ 3) / 6)
-test_data_BV <- test_data %>%
-  mutate(Biovolume = pi * ((Size) ^ 3) / 6)
-
-# Step 5: Train Random Forest classifier on training set
-tunegrid <- base::expand.grid(df = 3)
-KYTOmodel_micropart <-
-  caret::train(
-    Size ~ param_1 + param_2,
-    data = train_data,
-    method = "gamSpline",
-    metric = "RMSE",
-    tuneGrid = tunegrid,
-    trControl = fitControl
-  )
-KYTOmodel_micropart_BV <-
-  caret::train(
-    Biovolume ~ param_1 + param_2,
-    data = train_data_BV,
-    method = "gamSpline",
-    metric = "RMSE",
-    tuneGrid = tunegrid,
-    trControl = fitControl
-  )
-print(KYTOmodel_micropart)
-print(KYTOmodel_micropart_BV)
-saveRDS(KYTOmodel_micropart, file = "./Results/SizeModnew.Rds")
-saveRDS(KYTOmodel_micropart_BV, file = "./Results/VolumeModnew.Rds")
-
-# For predictions
-RF_pred <-
-  predict.train(KYTOmodel_micropart, newdata = test_data)
-RF_pred <- data.table(Predicted_size = RF_pred, test_data)
-RF_pred_BV <-
-  predict.train(KYTOmodel_micropart_BV, newdata = test_data_BV)
-RF_pred_BV <-
-  data.table(Predicted_biovolume = RF_pred_BV, test_data_BV)
-if (plot == TRUE) {
-  p1 <- ggplot2::ggplot(RF_pred, aes(x = Size, y = Predicted_size)) +
-    ggplot2::geom_point(shape = 21,
-      size = 3,
-      fill = "#ffa401") +
-    ggplot2::theme_bw() +
-    ggplot2::geom_smooth(method = "lm",
-      col = "black",
-      linetype = 2) +
-    ggplot2::geom_abline(
-      slope = 1,
-      col = "darkgreen",
-      linetype = 2,
-      size = 1.2
-    ) +
-    ggplot2::xlim(-0.1, max(bead_selection) + 0.2) +
-    ggplot2::ylim(-0.1, max(bead_selection) + 0.2) +
-    ggplot2::ggtitle("Model performance on test set") +
-    ylab(expression(Predicted ~ size ~ (mu * m))) +
-    xlab(expression(Size ~ (mu * m))) +
-    ggplot2::annotate("text", x = 0.5, y = 2, label=
-             bquote(R^{2}==.(signif(KYTOmodel_micropart$results$Rsquared, 4))))
-  
-  p2 <-
-    ggplot2::ggplot(RF_pred_BV, aes(x = Biovolume, y = Predicted_biovolume)) +
-    ggplot2::geom_point(shape = 21,
-      size = 3,
-      fill = "#ffa401") +
-    ggplot2::theme_bw() +
-    ggplot2::geom_smooth(method = "lm",
-      col = "black",
-      linetype = 2) +
-    ggplot2::geom_abline(
-      slope = 1,
-      col = "darkgreen",
-      linetype = 2,
-      size = 1.2
-    ) +
-    ggplot2::xlim(-0.1, max(pi * (bead_selection ^ 3) / 6) + 0.2) +
-    ggplot2::ylim(-0.1, max(pi * (bead_selection ^ 3) / 6) + 0.2) +
-    ggplot2::ggtitle("Model performance on test set") +
-    ylab(expression(Predicted ~ (bio) * volume ~ (mu * m ^ 3)))  +
-    xlab(expression(Volume ~ (mu * m ^ 3)))+
-    ggplot2::annotate("text", x = 0.5, y = 6, label=
-             bquote(R^{2}==.(signif(KYTOmodel_micropart_BV$results$Rsquared, 4))))
-  
-  print(cowplot::plot_grid(p1, p2, align = "hv"))
-}
-
-```
+#### Cell size and biovolume over time {.tabset .tabset-pills}
 
 ##### Apply to ICC data
 
@@ -2435,21 +1050,23 @@ fcs_x   <- hierarchfsBODIPYKP.clean.atd
 # filter out params of interest
 fcs_x <- fcs_x[, param]
 # actual size inferences
-results_sizing.bodipy <- fsApply(fcs_x, use.exprs = TRUE, function(x) {
-  x <-
-    x[, param[1:2], drop = FALSE]
-  colnames(x) <- c("param_1", "param_2")
-  RF_pred <-
-    data.table(predict.train(KYTOmodel_micropart, newdata = x))
-})
-results_sizing_BV.bodipy <- fsApply(fcs_x, use.exprs = TRUE, function(x) {
-  x <-
-    x[, param[1:2], drop = FALSE]
-  colnames(x) <-   c("param_1", "param_2")
-  RF_pred <-
-    data.table(predict.train(KYTOmodel_micropart_BV, newdata = x))
-})
-# we calculated the results in a summary format 
+results_sizing.bodipy <-
+  fsApply(fcs_x, use.exprs = TRUE, function(x) {
+    x <-
+      x[, param[1:2], drop = FALSE]
+    colnames(x) <- c("param_1", "param_2")
+    RF_pred <-
+      data.table(predict.train(KYTOmodel_micropart, newdata = x))
+  })
+results_sizing_BV.bodipy <-
+  fsApply(fcs_x, use.exprs = TRUE, function(x) {
+    x <-
+      x[, param[1:2], drop = FALSE]
+    colnames(x) <-   c("param_1", "param_2")
+    RF_pred <-
+      data.table(predict.train(KYTOmodel_micropart_BV, newdata = x))
+  })
+# we calculated the results in a summary format
 results_sizing.bodipy.summary <- data.table(
   Sample_names = names(results_sizing.bodipy),
   med_value = unlist(lapply(
@@ -2496,23 +1113,21 @@ results_sizing_BV.bodipy.summary <- data.table(
       length(x$V1)
   ))
 )
-openxlsx::addWorksheet(reswb,sheetName = "BODIPY_diameter")
-openxlsx::writeData(reswb,sheet="BODIPY_diameter",x = results_sizing.bodipy.summary)
-openxlsx::addWorksheet(reswb,sheetName = "BODIPY_volume")
-openxlsx::writeData(reswb,sheet="BODIPY_volume",x = results_sizing_BV.bodipy.summary)
+openxlsx::addWorksheet(reswb, sheetName = "BODIPY_diameter")
+openxlsx::writeData(reswb, sheet = "BODIPY_diameter", 
+                    x = results_sizing.bodipy.summary)
+openxlsx::addWorksheet(reswb, sheetName = "BODIPY_volume")
+openxlsx::writeData(reswb, sheet = "BODIPY_volume", 
+                    x = results_sizing_BV.bodipy.summary)
 
-openxlsx::saveWorkbook(reswb,file = "Results/FcM_results.xlsx",overwrite = TRUE)
+openxlsx::saveWorkbook(reswb, file = "Results/FcM_results.xlsx", 
+                       overwrite = TRUE)
 ```
 
-## Co-culture composition over time
 
-### Model-free (gated) approach
+#### Protein and nucleic acid 
 
-### Using machine learning
-
-## Protein and nucleic acid 
-
-### Gating strategy
+##### Gating strategy
 
 ```{r syprogatesandpreprocessing, echo=FALSE,warning=FALSE,message=FALSE,cache.lazy=FALSE}
 # SYPRO dataset ----------------------------------------------------------------
@@ -2522,8 +1137,10 @@ mddf.toanalyze.SYPRO.MMMV.KP <- mddf.toanalyze %>%
                   Medium == "MMMV" &
                   strain == "KP")
 
-mddf.toanalyze.SYPRO.MMMV.KP$timepoint <- gsub(".*(t[0-9]).fcs","\\1",
-                                      mddf.toanalyze.SYPRO.MMMV.KP$filenames)
+mddf.toanalyze.SYPRO.MMMV.KP$timepoint <-
+  gsub(".*(t[0-9]).fcs",
+       "\\1",
+       mddf.toanalyze.SYPRO.MMMV.KP$filenames)
 
 flowsetSYPROKP <- allfs.orig[mddf.toanalyze.SYPRO.MMMV.KP$filenames]
 
@@ -2532,47 +1149,56 @@ flowsetSYPROKP.clean <- FCS_clean(flowsetSYPROKP,
                                             "SSC-H", "FSC-H"))
 
 chnls <- colnames(flowsetSYPROKP)[2:28]
-transList <- transformerList(chnls,trans.obj)
+transList <- transformerList(chnls, trans.obj)
 gatingsetSYPROKP <- GatingSet(flowsetSYPROKP)
 gatingsetSYPROKP <- transform(gatingsetSYPROKP, transList)
-flowsetSYPROKP_transformed <- cytoset_to_flowSet(gs_pop_get_data(gatingsetSYPROKP))
+flowsetSYPROKP_transformed <-
+  cytoset_to_flowSet(gs_pop_get_data(gatingsetSYPROKP))
 
 gatingsetSYPROKP.hier <- GatingSet(flowsetSYPROKP)
 gatingsetSYPROKP.hier <- transform(gatingsetSYPROKP.hier, transList)
 
 
 gatingsetSYPROKP.hier.clean <- GatingSet(flowsetSYPROKP.clean)
-gatingsetSYPROKP.hier.clean <- transform(gatingsetSYPROKP.hier.clean, transList)
+gatingsetSYPROKP.hier.clean <-
+  transform(gatingsetSYPROKP.hier.clean, transList)
 
 ## Gating strategy -------------------------------------------------------------
-sqrcutSYPROSYTO<- matrix(c(5, 12, 15.0,5,
-                           5, 5, 14.5,14.5),
-     ncol = 2,
-     nrow = 4)
+sqrcutSYPROSYTO <- matrix(c(5, 12, 15.0, 5,
+                            5, 5, 14.5, 14.5),
+                          ncol = 2,
+                          nrow = 4)
 colnames(sqrcutSYPROSYTO) <- c("BL2-H", "RL1-H")
-polyGateSYPROSYTO <- polygonGate(.gate = sqrcutSYPROSYTO, filterId = "Dual positive")
+polyGateSYPROSYTO <-
+  polygonGate(.gate = sqrcutSYPROSYTO, filterId = "Dual positive")
 
-sqrcutSYPROSSC <- matrix(c(4.6, 4.5, 4.50, 15.0, 15.0,
-                           6.1, 6.75, 12.5, 12.5, 6.1),
-     ncol = 2,
-     nrow = 5)
+sqrcutSYPROSSC <- matrix(
+  c(4.6, 4.5, 4.50, 15.0, 15.0,
+    6.1, 6.75, 12.5, 12.5, 6.1),
+  ncol = 2,
+  nrow = 5
+)
 colnames(sqrcutSYPROSSC) <- c("BL2-H", "SSC-H")
-polyGateSYPROSSC <- polygonGate(.gate = sqrcutSYPROSSC, filterId = "SYPRO+")
+polyGateSYPROSSC <-
+  polygonGate(.gate = sqrcutSYPROSSC, filterId = "SYPRO+")
 
-nodes1 <- gs_pop_add(gatingsetSYPROKP.hier,polyGateSYPROSSC)
-nodes2 <- gs_pop_add(gatingsetSYPROKP.hier,polyGateSYPROSYTO,parent="SYPRO+")
+nodes1 <- gs_pop_add(gatingsetSYPROKP.hier, polyGateSYPROSSC)
+nodes2 <-
+  gs_pop_add(gatingsetSYPROKP.hier, polyGateSYPROSYTO, parent = "SYPRO+")
 recompute(gatingsetSYPROKP.hier)
 plot(gatingsetSYPROKP.hier)
 
-nodes1.clean <- gs_pop_add(gatingsetSYPROKP.hier.clean, polyGateSYPROSSC)
+nodes1.clean <-
+  gs_pop_add(gatingsetSYPROKP.hier.clean, polyGateSYPROSSC)
 nodes2.clean <- gs_pop_add(gatingsetSYPROKP.hier.clean,
-                           polyGateSYPROSYTO, parent="SYPRO+")
+                           polyGateSYPROSYTO, parent = "SYPRO+")
 recompute(gatingsetSYPROKP.hier.clean)
 
 pSYPROKPSYTOgates <- ggcyto(gatingsetSYPROKP.hier,
-                            aes(x="RL1-H",y="BL2-H"),subset="SYPRO+")
-pSYPROKPSYTOgates + geom_hex(bins=512) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
-            geom_gate(polyGateSYPROSYTO,colour="orangered") 
+                            aes(x = "RL1-H", y = "BL2-H"), subset = "SYPRO+")
+pSYPROKPSYTOgates + geom_hex(bins = 512) + theme_bw() + labs_cyto("marker") + ggcyto_par_set(limits =
+                                                                                               "instrument") +
+  geom_gate(polyGateSYPROSYTO, colour = "orangered") 
 # pdf("Gating_hierarchy_SYPRO.pdf")
 # lapply(gatingsetSYPRO.hier,function(x)autoplot(x,bins=256)+theme_bw())
 # dev.off()
@@ -2612,25 +1238,29 @@ hierarchgsSYPROKP.clean <- gs_pop_get_data(gatingsetSYPROKP.hier.clean,
 hierarchfsSYPROKP.clean <- cytoset_to_flowSet(hierarchgsSYPROKP.clean)
 
 ## count, aggregate and annotate events for SYPRO after cleaning ----------------
-countssypro <- fsApply(flowsetSYPROKP_transformed,nrow)
-countssypro.clean <- fsApply(hierarchfsSYPROKP.clean,nrow)
+countssypro <- fsApply(flowsetSYPROKP_transformed, nrow)
+countssypro.clean <- fsApply(hierarchfsSYPROKP.clean, nrow)
 
-cleanup.sypro.df <- data.frame(filenames=rownames(countssypro),
-                               raw_events=countssypro,
-                               cleaned_events=countssypro.clean)
+cleanup.sypro.df <- data.frame(
+  filenames = rownames(countssypro),
+  raw_events = countssypro,
+  cleaned_events = countssypro.clean
+)
 
-cleanup.sypro.df.md <- dplyr::left_join(cleanup.sypro.df,mddf.toanalyze.SYPRO.MMMV.KP) %>%
-                       pivot_longer(raw_events:cleaned_events,
-                                    names_to="cleaning_status",
-                                    values_to = "events")
+cleanup.sypro.df.md <-
+  dplyr::left_join(cleanup.sypro.df, mddf.toanalyze.SYPRO.MMMV.KP) %>%
+  pivot_longer(raw_events:cleaned_events,
+               names_to = "cleaning_status",
+               values_to = "events")
 
-cleanup.sypro.df.md$cleaning_status <- factor(cleanup.sypro.df.md$cleaning_status,
-                                              levels=c("raw_events",
-                                                      "cleaned_events"))
+cleanup.sypro.df.md$cleaning_status <-
+  factor(cleanup.sypro.df.md$cleaning_status,
+         levels = c("raw_events",
+                    "cleaned_events"))
 
-psyproclean <- cleanup.sypro.df.md %>% ggplot(aes(x=timepoint,
-                                                  y=events,
-                                                  fill=cleaning_status))
+psyproclean <- cleanup.sypro.df.md %>% ggplot(aes(x = timepoint,
+                                                  y = events,
+                                                  fill = cleaning_status))
 psyproclean + geom_boxplot() + theme_bw()
 
 # BODIPY dataset ----------------------------------------------------------------
@@ -2640,70 +1270,89 @@ mddf.toanalyze.BODIPY.MMMV.KP <- mddf.toanalyze %>%
                   Medium == "MMMV" &
                   strain == "KP")
 # only analyse data acquired with the new settings
-mddf.toanalyze.BODIPY.MMMV.KP <- mddf.toanalyze.BODIPY.MMMV.KP[grep("newsettings",mddf.toanalyze.BODIPY.MMMV.KP$filenames),]
+mddf.toanalyze.BODIPY.MMMV.KP <-
+  mddf.toanalyze.BODIPY.MMMV.KP[grep("newsettings", mddf.toanalyze.BODIPY.MMMV.KP$filenames), ]
 
-mddf.toanalyze.BODIPY.MMMV.KP$timepoint <- gsub(".*(t[0-9]).*.fcs","\\1",
-                                      mddf.toanalyze.BODIPY.MMMV.KP$filenames)
+mddf.toanalyze.BODIPY.MMMV.KP$timepoint <-
+  gsub(".*(t[0-9]).*.fcs",
+       "\\1",
+       mddf.toanalyze.BODIPY.MMMV.KP$filenames)
 
-flowsetBODIPYKP <- allfs.orig[mddf.toanalyze.BODIPY.MMMV.KP$filenames]
+flowsetBODIPYKP <-
+  allfs.orig[mddf.toanalyze.BODIPY.MMMV.KP$filenames]
 
 flowsetBODIPYKP.clean <- FCS_clean(flowsetBODIPYKP,
-                                  param = c("BL1-H", "RL1-H",
-                                            "SSC-H", "FSC-H"))
+                                   param = c("BL1-H", "RL1-H",
+                                             "SSC-H", "FSC-H"))
 
 chnls <- colnames(flowsetBODIPYKP)[2:28]
-transList <- transformerList(chnls,trans.obj)
+transList <- transformerList(chnls, trans.obj)
 gatingsetBODIPYKP <- GatingSet(flowsetBODIPYKP)
 gatingsetBODIPYKP <- transform(gatingsetBODIPYKP, transList)
-flowsetBODIPYKP_transformed <- cytoset_to_flowSet(gs_pop_get_data(gatingsetBODIPYKP))
+flowsetBODIPYKP_transformed <-
+  cytoset_to_flowSet(gs_pop_get_data(gatingsetBODIPYKP))
 
 gatingsetBODIPYKP.hier <- GatingSet(flowsetBODIPYKP)
-gatingsetBODIPYKP.hier <- transform(gatingsetBODIPYKP.hier, transList)
+gatingsetBODIPYKP.hier <-
+  transform(gatingsetBODIPYKP.hier, transList)
 
 
 gatingsetBODIPYKP.hier.clean <- GatingSet(flowsetBODIPYKP.clean)
-gatingsetBODIPYKP.hier.clean <- transform(gatingsetBODIPYKP.hier.clean, transList)
+gatingsetBODIPYKP.hier.clean <-
+  transform(gatingsetBODIPYKP.hier.clean, transList)
 
 ## design gates ----------------------------------------------------------------
-sqrcutBODIPYSYTO<- matrix(c(5.00, 5.00, 9.00, 15.0,11.0,
-                            8.2, 12.5, 14.5, 14.5,7.40),
-     ncol = 2,
-     nrow = 5)
+sqrcutBODIPYSYTO <- matrix(
+  c(5.00, 5.00, 9.00, 15.0, 11.0,
+    8.2, 12.5, 14.5, 14.5, 7.40),
+  ncol = 2,
+  nrow = 5
+)
 colnames(sqrcutBODIPYSYTO) <- c("BL1-H", "RL1-H")
-polyGateBODIPYSYTO <- polygonGate(.gate = sqrcutBODIPYSYTO, filterId = "Dual positive")
+polyGateBODIPYSYTO <-
+  polygonGate(.gate = sqrcutBODIPYSYTO, filterId = "Dual positive")
 
-sqrcutSYTOSSC<- matrix(c(7.50, 7.50, 10.0, 15.0,10,
-                         7.50, 12.5, 14.5, 14.5,7.5),
-     ncol = 2,
-     nrow = 5)
+sqrcutSYTOSSC <- matrix(
+  c(7.50, 7.50, 10.0, 15.0, 10,
+    7.50, 12.5, 14.5, 14.5, 7.5),
+  ncol = 2,
+  nrow = 5
+)
 colnames(sqrcutSYTOSSC) <- c("SSC-H", "RL1-H")
-polyGateSYTOSSC <- polygonGate(.gate = sqrcutSYTOSSC, filterId = "SYTO62+")
+polyGateSYTOSSC <-
+  polygonGate(.gate = sqrcutSYTOSSC, filterId = "SYTO62+")
 
 sqrcutBODIPYSSC <- matrix(c(5.00, 12.5, 15.0, 5.00,
                             7.50, 7.50, 13.5, 13.5),
-     ncol = 2,
-     nrow = 4)
+                          ncol = 2,
+                          nrow = 4)
 colnames(sqrcutBODIPYSSC) <- c("BL1-H", "SSC-H")
-polyGateBODIPYSSC <- polygonGate(.gate = sqrcutBODIPYSSC, filterId = "BODIPY493+")
+polyGateBODIPYSSC <-
+  polygonGate(.gate = sqrcutBODIPYSSC, filterId = "BODIPY493+")
 
 pSYTOSSCgates <- ggcyto(flowsetBODIPYKP_transformed,
-                    aes(x="SSC-H",y="RL1-H"))
-pSYTOSSCgates + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
-            geom_gate(polyGateSYTOSSC,colour="darkred")
+                        aes(x = "SSC-H", y = "RL1-H"))
+pSYTOSSCgates + geom_hex(bins = 256) + theme_bw() + labs_cyto("marker") + ggcyto_par_set(limits =
+                                                                                           "instrument") +
+  geom_gate(polyGateSYTOSSC, colour = "darkred")
 
 pBODIPYSSCgates <- ggcyto(flowsetBODIPYKP_transformed,
-                    aes(x="SSC-H",y="BL1-H"))
-pBODIPYSSCgates + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
-            geom_gate(polyGateBODIPYSSC,colour="darkgreen") 
+                          aes(x = "SSC-H", y = "BL1-H"))
+pBODIPYSSCgates + geom_hex(bins = 256) + theme_bw() + labs_cyto("marker") + ggcyto_par_set(limits =
+                                                                                             "instrument") +
+  geom_gate(polyGateBODIPYSSC, colour = "darkgreen")
 
 pBODIPYSYTOgates <- ggcyto(flowsetBODIPYKP_transformed,
-                    aes(x="RL1-H",y="BL1-H"))
-pBODIPYSYTOgates + geom_hex(bins=256) + theme_bw() + labs_cyto("marker")+ ggcyto_par_set(limits="instrument")+
-            geom_gate(polyGateBODIPYSYTO,colour="orangered") 
+                           aes(x = "RL1-H", y = "BL1-H"))
+pBODIPYSYTOgates + geom_hex(bins = 256) + theme_bw() + labs_cyto("marker") + ggcyto_par_set(limits =
+                                                                                              "instrument") +
+  geom_gate(polyGateBODIPYSYTO, colour = "orangered")
 
-nodes3 <- gs_pop_add(gatingsetBODIPYKP.hier,polyGateSYTOSSC)
-nodes4 <- gs_pop_add(gatingsetBODIPYKP.hier,polyGateBODIPYSSC,parent="SYTO62+")
-nodes5 <- gs_pop_add(gatingsetBODIPYKP.hier,polyGateBODIPYSYTO,parent="BODIPY493+")
+nodes3 <- gs_pop_add(gatingsetBODIPYKP.hier, polyGateSYTOSSC)
+nodes4 <-
+  gs_pop_add(gatingsetBODIPYKP.hier, polyGateBODIPYSSC, parent = "SYTO62+")
+nodes5 <-
+  gs_pop_add(gatingsetBODIPYKP.hier, polyGateBODIPYSYTO, parent = "BODIPY493+")
 recompute(gatingsetBODIPYKP.hier)
 plot(gatingsetBODIPYKP.hier)
 
@@ -2711,10 +1360,10 @@ nodes3.clean <- gs_pop_add(gatingsetBODIPYKP.hier.clean,
                            polyGateSYTOSSC)
 nodes4.clean <- gs_pop_add(gatingsetBODIPYKP.hier.clean,
                            polyGateBODIPYSSC,
-                           parent="SYTO62+")
+                           parent = "SYTO62+")
 nodes5.clean <- gs_pop_add(gatingsetBODIPYKP.hier.clean,
                            polyGateBODIPYSYTO,
-                           parent="BODIPY493+")
+                           parent = "BODIPY493+")
 recompute(gatingsetBODIPYKP.hier.clean)
 plot(gatingsetBODIPYKP.hier.clean)
 
@@ -2758,7 +1407,7 @@ pbodipyclean <- cleanup.bodipy.df.md %>% ggplot(aes(x=timepoint,
 pbodipyclean + geom_boxplot() + theme_bw()
 ```
 
-### Results
+### Mean fluorescence intentity
 
 ##### SYPRO data cleaned
 
