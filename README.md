@@ -1,7 +1,5 @@
-# Sakarika-Kerckhof-et-al-2023
-Accompanying code to Sakarika, Kerckhof et al. 2023 - "Growth rate and limiting 
- substrate define the nutritional composition and cell size of microbial biomass 
- for food applications " (submitted).
+# Sakarika-Kerckhof-et-al-2024
+Accompanying code to Sakarika, Kerckhof et al. 2024 - "The nutritional composition and cell size of microbial biomass for food applications are defined by the growth conditions" (accepted, *Microbial Cell Factories*).
  
 Unless otherwise stated, most code is provided in the R language and most 
 coherent scripts are grouped into [R markdown](https://rmarkdown.rstudio.com/) 
@@ -20,8 +18,8 @@ Proteomics/Retrieve-GO-terms.ipynb | Python (iPython notebook) | Retrieve and or
 ### Source data
 
 The mass spectrometry data and flow cytometry data have been published in dedicated repositories:
-- Proteomics data can be found at: 
-- Flow cytometry data can be found at the FlowRepository with identifier FR-FCM-Z6Y6 - until publication of the manuscript this identifier is under embargo, but anonymous reviewer access can be provided
+- Proteomics data can be found at: ProteomeXchange Consortium via the PRIDE partner repository with the dataset identifier PXD041491
+- Flow cytometry data can be found at the FlowRepository with identifier FR-FCM-Z6Y6 - until final publication of the manuscript this identifier is under embargo, but anonymous reviewer access can be provided
 
 ### R packages
 
