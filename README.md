@@ -1,5 +1,5 @@
-# Sakarika-Kerckhof-et-al-203
-Accompanying code to Sakarika, Kerckhof et al. 20234 - "The nutritional composition and cell size of microbial biomass for food applications are defined by the growth conditions" (*Microb Cell Fact.* 2023 Dec 11;22(1):254. doi: [10.1186/s12934-023-02265-1](https://link.springer.com/article/10.1186/s12934-023-02265-1)).
+# Sakarika-Kerckhof-et-al-2023
+Accompanying code to Sakarika, Kerckhof et al. 2023 - "The nutritional composition and cell size of microbial biomass for food applications are defined by the growth conditions" (*Microb Cell Fact.* 2023 Dec 11;22(1):254. doi: [10.1186/s12934-023-02265-1](https://link.springer.com/article/10.1186/s12934-023-02265-1)).
  
 Unless otherwise stated, most code is provided in the R language and most 
 coherent scripts are grouped into [R markdown](https://rmarkdown.rstudio.com/) 
