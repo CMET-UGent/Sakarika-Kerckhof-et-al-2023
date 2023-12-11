@@ -1,5 +1,5 @@
-# Sakarika-Kerckhof-et-al-2024
-Accompanying code to Sakarika, Kerckhof et al. 2024 - "The nutritional composition and cell size of microbial biomass for food applications are defined by the growth conditions" (accepted, *Microbial Cell Factories*).
+# Sakarika-Kerckhof-et-al-203
+Accompanying code to Sakarika, Kerckhof et al. 20234 - "The nutritional composition and cell size of microbial biomass for food applications are defined by the growth conditions" (*Microb Cell Fact.* 2023 Dec 11;22(1):254. doi: [10.1186/s12934-023-02265-1](https://link.springer.com/article/10.1186/s12934-023-02265-1)).
  
 Unless otherwise stated, most code is provided in the R language and most 
 coherent scripts are grouped into [R markdown](https://rmarkdown.rstudio.com/) 
@@ -18,8 +18,8 @@ Proteomics/Retrieve-GO-terms.ipynb | Python (iPython notebook) | Retrieve and or
 ### Source data
 
 The mass spectrometry data and flow cytometry data have been published in dedicated repositories:
-- Proteomics data can be found at: ProteomeXchange Consortium via the PRIDE partner repository with the dataset identifier PXD041491
-- Flow cytometry data can be found at the FlowRepository with identifier FR-FCM-Z6Y6 - until final publication of the manuscript this identifier is under embargo, but anonymous reviewer access can be provided
+- Proteomics data can be found at: ProteomeXchange Consortium via the PRIDE partner repository with the dataset identifier PXD041491.
+- Flow cytometry data can be found at the FlowRepository with identifier [FR-FCM-Z6Y6](https://flowrepository.org/id/FR-FCM-Z6Y6).
 
 ### R packages
 
